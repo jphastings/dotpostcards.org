@@ -6,7 +6,7 @@
     "id": "did:web:dotpostcard.org#atproto",
     "type": "Multikey",
     "controller": "did:web:dotpostcard.org",
-    "publicKeyMultibase": "zQ3shRo8brhj5wdJ8m5GNvpvpX5H28Nu2apn9skuGkTzFGsc6"
+    "publicKeyMultibase": "zQ3shU7d15373neSRcDvra8zS2VygmhqNkJS4BCSDqC4rsmjP"
   }],
   "service": [{
     "id": "#atproto_pds",
