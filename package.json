@@ -13,7 +13,7 @@
 		"test": "vitest run",
 		"test:e2e": "playwright test",
 		"lint": "oxlint src tests e2e",
-		"format": "oxfmt src tests e2e"
+		"format": "oxfmt src tests e2e '!src/lib/vendor'"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.65.1",
