@@ -7,8 +7,11 @@
 
 	let { card }: { card: Card } = $props();
 	let view = $state<View>('file');
-	let previous = $state<View>('file');
+	// The side left facing up when the file is folded: the other half folds away behind it
+	let side = $state<'front' | 'back'>('front');
+	let turning = $state(false);
 	let flipped = $state(false);
+	let cardEl: HTMLDivElement;
 
 	const uid = $props.id();
 	const views: View[] = ['file', 'front', 'back'];
@@ -51,12 +54,14 @@
 		})
 	);
 
-	async function show(next: View) {
+	// The card only turns over in view; while it's hidden behind the fold it snaps to its new side
+	async function show(next: View, inView = getComputedStyle(cardEl).visibility === 'visible') {
 		if (next === view) return;
-		previous = view;
+		turning = inView && next !== 'file';
 		view = next;
-		// The flip's timing hangs off the classes view sets, so they must land first: a style
-		// recalc between the two (Chrome forces one when a tab has focus) would flip too early
+		if (next !== 'file') side = next;
+		// Whether the flip animates hangs off the classes set above, so they must land first: a
+		// style recalc between the two (Chrome forces one when a tab has focus) would use stale ones
 		await tick();
 		flipped = view === 'back';
 	}
@@ -86,18 +91,22 @@
 		<div
 			class="figure"
 			class:folded={view !== 'file'}
-			class:after-flip={view === 'file' && previous === 'back'}
-			class:before-flip={view === 'back' && previous === 'file'}
+			class:to-back={side === 'back'}
+			class:turning
 			style="--w: {width}px; --h: {height}px; --hn: {height}"
 		>
 			<div class="file" style:visibility={view === 'file' ? null : 'hidden'}>
-				<img src={card.src} alt="{card.name}.postcard.webp: the front above the back" />
+				<img
+					class="front-half"
+					src={card.src}
+					alt="{card.name}.postcard.webp: the front above the back"
+				/>
 				<img class="back-half" src={card.src} alt="" />
 			</div>
-			<div class="card" style:visibility={view === 'file' ? 'hidden' : null}>
+			<div class="card" bind:this={cardEl} style:visibility={view === 'file' ? 'hidden' : null}>
 				<Postcard
 					{card}
-					bind:flipped={() => flipped, (back) => show(back ? 'back' : 'front')}
+					bind:flipped={() => flipped, (back) => show(back ? 'back' : 'front', true)}
 				/>
 				{#each sides as { name, secrets } (name)}
 					{#if secrets.length}
@@ -224,7 +233,6 @@
 		initial-value: 0;
 	}
 	.figure {
-		--delay: 0s;
 		--fold: 0;
 		--angle: calc(var(--fold) * -180deg);
 		position: relative;
@@ -234,13 +242,13 @@
 	.figure.folded {
 		--fold: 1;
 	}
-	.figure.after-flip {
-		--delay: 1s;
-	}
 	.file {
 		position: absolute;
 		inset: 0;
 		transform: translateY(calc(var(--h) / 2 * var(--fold)));
+	}
+	.to-back .file {
+		transform: translateY(calc(var(--h) / -2 * var(--fold)));
 	}
 	.file img {
 		display: block;
@@ -248,12 +256,19 @@
 		height: var(--h);
 		object-fit: cover;
 		object-position: top;
+		backface-visibility: hidden;
 	}
 	.file .back-half {
 		object-position: bottom;
 		transform-origin: top;
 		transform: perspective(1000px) rotateX(var(--angle));
-		backface-visibility: hidden;
+	}
+	.to-back .file .back-half {
+		transform: none;
+	}
+	.to-back .file .front-half {
+		transform-origin: bottom;
+		transform: perspective(1000px) rotateX(calc(-1 * var(--angle)));
 	}
 	.card {
 		position: absolute;
@@ -265,17 +280,18 @@
 	.card :global(label.postcard) {
 		width: 100%;
 	}
-	/* Hugs the folding half's projected lower edge: h·cos θ, foreshortened by the 1000px perspective */
+	/* Hugs the folding half's projected outer edge: h·cos θ, foreshortened by the 1000px perspective */
 	.measure {
+		--projected: calc(max(0, cos(var(--angle))) / (1 - var(--hn) * sin(var(--angle)) / 1000));
 		position: absolute;
 		left: 0;
 		width: var(--w);
 		top: calc(var(--h) / 2 * var(--fold));
-		height: calc(
-			var(--h) *
-				(1 + max(0, cos(var(--angle))) / (1 - var(--hn) * sin(var(--angle)) / 1000))
-		);
+		height: calc(var(--h) * (1 + var(--projected)));
 		pointer-events: none;
+	}
+	.to-back .measure {
+		top: calc(var(--h) * (1 - var(--projected) - var(--fold) / 2));
 	}
 	.dim {
 		display: grid;
@@ -332,24 +348,16 @@
 
 	@media (prefers-reduced-motion: no-preference) {
 		.figure {
-			transition: --fold 1s ease-in-out var(--delay);
+			transition: --fold 1s ease-in-out;
 		}
-		.file {
-			transition: visibility 0s var(--delay);
-		}
-		.folded .file {
+		.folded .file,
+		.folded .card {
 			transition: visibility 0s 1s;
 		}
 		/* Units change when the folding half turns edge-on */
 		.px,
 		.cm {
-			transition: visibility 0s calc(var(--delay) + 0.5s);
-		}
-		.card {
-			transition: visibility 0s var(--delay);
-		}
-		.folded .card {
-			transition: visibility 0s 1s;
+			transition: visibility 0s 0.5s;
 		}
 		svg {
 			transition: opacity 0.2s;
@@ -357,13 +365,9 @@
 		svg.shown {
 			transition: opacity 0.4s 0.95s;
 		}
-		/* Straight from the file to the back: fold first, then flip in view */
-		.before-flip .card :global(label.postcard) {
-			transition-delay: 1s;
-		}
-		.before-flip svg.shown {
-			transition-delay: 1.95s;
-		}
+	}
+	.figure:not(.turning) .card :global(label.postcard) {
+		transition: none;
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.card :global(label.postcard) {
