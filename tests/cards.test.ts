@@ -1,13 +1,5 @@
 import { readdirSync } from "node:fs";
-import {
-  getCard,
-  cm,
-  sideSize,
-  formatDate,
-  transcriptionLanguage,
-  orientation,
-  arModel,
-} from "$lib/cards";
+import { getCard, cm, formatDate, transcriptionLanguage, orientation, arModel } from "$lib/cards";
 import { showcase } from "$lib/showcase";
 
 test("every card file has an image extension and data", () => {
@@ -23,11 +15,8 @@ test("reads iceland as stored", () => {
   expect(formatDate(c.sentOn!)).toBe("13 January 2023");
   expect(transcriptionLanguage(c.back!)).toBe("Icelandic");
 });
-test("sizes follow the side", () => {
+test("sizes read in centimetres", () => {
   expect(cm("345/32")).toBe("10.8 cm");
-  expect(sideSize(getCard("iceland"), "front")).toEqual({ width: "10.8 cm", height: "15.2 cm" });
-  expect(sideSize(getCard("iceland"), "back")).toEqual({ width: "15.2 cm", height: "10.8 cm" });
-  expect(sideSize(getCard("athens"), "back")).toEqual(sideSize(getCard("athens"), "front"));
 });
 test("unknown cards fail loudly", () =>
   expect(() => getCard("nope")).toThrow("Unknown card: nope"));

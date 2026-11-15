@@ -34,8 +34,6 @@ export function getCard(name: string): Card {
   return { ...card, name, src: `/cards/${name}.postcard.webp` };
 }
 
-export const isHeteroriented = (flip: Flip) => flip === "left-hand" || flip === "right-hand";
-
 export function orientation(card: Card): "portrait" | "landscape" | "square" {
   const { pxW, pxH } = card.physical.frontSize;
   return pxW === pxH ? "square" : pxW < pxH ? "portrait" : "landscape";
@@ -44,12 +42,6 @@ export function orientation(card: Card): "portrait" | "landscape" | "square" {
 export function cm(fraction: string): string {
   const [numerator, denominator = "1"] = fraction.split("/");
   return `${(Number(numerator) / Number(denominator)).toFixed(1)} cm`;
-}
-
-export function sideSize(card: Card, side: "front" | "back") {
-  const { cmW, cmH } = card.physical.frontSize;
-  const swap = side === "back" && isHeteroriented(card.flip);
-  return { width: cm(swap ? cmH : cmW), height: cm(swap ? cmW : cmH) };
 }
 
 export const formatDate = (iso: string) =>

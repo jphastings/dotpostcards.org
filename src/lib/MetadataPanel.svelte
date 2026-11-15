@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import Postcard from '$lib/Postcard.svelte';
 	import { cm, formatDate, transcriptionLanguage, type Card, type Flip } from '$lib/cards';
 
@@ -7,6 +8,7 @@
 	let { card }: { card: Card } = $props();
 	let view = $state<View>('file');
 	let previous = $state<View>('file');
+	let flipped = $state(false);
 
 	const uid = $props.id();
 	const views: View[] = ['file', 'front', 'back'];
@@ -49,9 +51,14 @@
 		})
 	);
 
-	function show(next: View) {
+	async function show(next: View) {
+		if (next === view) return;
 		previous = view;
 		view = next;
+		// The flip's timing hangs off the classes view sets, so they must land first: a style
+		// recalc between the two (Chrome forces one when a tab has focus) would flip too early
+		await tick();
+		flipped = view === 'back';
 	}
 
 	function onStageClick(event: MouseEvent) {
@@ -80,6 +87,7 @@
 			class="figure"
 			class:folded={view !== 'file'}
 			class:after-flip={view === 'file' && previous === 'back'}
+			class:before-flip={view === 'back' && previous === 'file'}
 			style="--w: {width}px; --h: {height}px; --hn: {height}"
 		>
 			<div class="file" style:visibility={view === 'file' ? null : 'hidden'}>
@@ -89,7 +97,7 @@
 			<div class="card" style:visibility={view === 'file' ? 'hidden' : null}>
 				<Postcard
 					{card}
-					bind:flipped={() => view === 'back', (back) => show(back ? 'back' : 'front')}
+					bind:flipped={() => flipped, (back) => show(back ? 'back' : 'front')}
 				/>
 				{#each sides as { name, secrets } (name)}
 					{#if secrets.length}
@@ -348,6 +356,13 @@
 		}
 		svg.shown {
 			transition: opacity 0.4s 0.95s;
+		}
+		/* Straight from the file to the back: fold first, then flip in view */
+		.before-flip .card :global(label.postcard) {
+			transition-delay: 1s;
+		}
+		.before-flip svg.shown {
+			transition-delay: 1.95s;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {

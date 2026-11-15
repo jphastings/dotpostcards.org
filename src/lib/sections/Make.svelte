@@ -18,6 +18,8 @@
 			alt="An Epson FastFoto FF-680W scanner: a stack of photos in its feeder, and one sliding out into its tray"
 			width="1200"
 			height="1076"
+			loading="lazy"
+			decoding="async"
 		/>
 		<div>
 			<p class="lede">Scan postcards rapidly with an Epson FastFoto FF-680W</p>

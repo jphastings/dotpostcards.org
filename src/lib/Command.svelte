@@ -1,5 +1,6 @@
 <script lang="ts">
 	let { command }: { command: string } = $props();
+	const id = $props.id();
 	let status = $state<'Copy' | 'Copied' | 'Press ⌘C'>('Copy');
 	let code: HTMLElement;
 
@@ -16,8 +17,8 @@
 </script>
 
 <div class="command">
-	<code bind:this={code}>{command}</code>
-	<button onclick={copy}>{status}</button>
+	<code id="command-{id}" bind:this={code}>{command}</code>
+	<button aria-describedby="command-{id}" onclick={copy}>{status}</button>
 </div>
 
 <style>

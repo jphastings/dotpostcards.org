@@ -34,6 +34,21 @@ test("the front faces up, the back is flipped over", async ({ page }) => {
   await expect.poll(() => flip(page)).toBe("180deg");
 });
 
+test("going straight from the file to the back folds, then flips in view", async ({ page }) => {
+  await tab(page, "Back").click();
+  const [visibility, degrees] = await card(page).evaluate((el) => {
+    for (const a of document.getAnimations()) {
+      a.pause();
+      a.currentTime = 1200;
+    }
+    const style = getComputedStyle(el);
+    return [style.visibility, parseFloat(style.getPropertyValue("--flip"))];
+  });
+  expect(visibility).toBe("visible");
+  expect(degrees).toBeGreaterThan(0);
+  expect(degrees).toBeLessThan(180);
+});
+
 test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
 
