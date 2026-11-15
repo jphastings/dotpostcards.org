@@ -1,0 +1,36 @@
+{
+	"name": "dotpostcard.org",
+	"private": true,
+	"packageManager": "pnpm@11.20.0",
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"test": "vitest run",
+		"test:e2e": "playwright test",
+		"lint": "oxlint src tests e2e",
+		"format": "oxfmt src tests e2e"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.65.1",
+		"@sveltejs/adapter-static": "^3.0.11",
+		"@sveltejs/kit": "^2.70.4",
+		"@sveltejs/vite-plugin-svelte": "^6.2.4",
+		"@testing-library/jest-dom": "^7.0.1",
+		"@testing-library/svelte": "^5.4.2",
+		"@testing-library/user-event": "^14.6.10",
+		"@types/node": "^25.9.9",
+		"jsdom": "^28.1.0",
+		"oxfmt": "^0.78.0",
+		"oxlint": "^1.93.0",
+		"svelte": "^5.57.3",
+		"svelte-check": "^4.7.8",
+		"typescript": "^5.9.3",
+		"vite": "^7.3.8",
+		"vitest": "^4.1.12"
+	}
+}

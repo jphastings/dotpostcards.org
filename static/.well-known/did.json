@@ -1,0 +1,16 @@
+{
+  "@context": ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/multikey/v1"],
+  "id": "did:web:dotpostcard.org",
+  "alsoKnownAs": ["at://dotpostcard.org"],
+  "verificationMethod": [{
+    "id": "did:web:dotpostcard.org#atproto",
+    "type": "Multikey",
+    "controller": "did:web:dotpostcard.org",
+    "publicKeyMultibase": "zQ3shRo8brhj5wdJ8m5GNvpvpX5H28Nu2apn9skuGkTzFGsc6"
+  }],
+  "service": [{
+    "id": "#atproto_pds",
+    "type": "AtprotoPersonalDataServer",
+    "serviceEndpoint": "https://vlpds.byjp.me"
+  }]
+}
