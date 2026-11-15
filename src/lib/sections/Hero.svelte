@@ -29,7 +29,6 @@
 		margin: 0 auto;
 		padding-top: 120px;
 		text-align: left;
-		overflow-x: clip;
 	}
 	.eyebrow {
 		margin: 0 0 8px;

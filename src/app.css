@@ -61,11 +61,19 @@ a:hover {
   background: #0077ed;
 }
 
+main {
+  overflow-x: clip;
+}
+
 main > section {
   padding: 100px 22px;
   text-align: center;
 }
 @media (max-width: 733px) {
+  main {
+    overflow-x: clip;
+  }
+
   main > section {
     padding-block: 64px;
   }
