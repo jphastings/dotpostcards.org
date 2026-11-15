@@ -1,5 +1,13 @@
 import { readdirSync } from "node:fs";
-import { getCard, cm, sideSize, formatDate, transcriptionLanguage, orientation } from "$lib/cards";
+import {
+  getCard,
+  cm,
+  sideSize,
+  formatDate,
+  transcriptionLanguage,
+  orientation,
+  arModel,
+} from "$lib/cards";
 import { showcase } from "$lib/showcase";
 
 test("every card file has an image extension and data", () => {
@@ -23,3 +31,9 @@ test("sizes follow the side", () => {
 });
 test("unknown cards fail loudly", () =>
   expect(() => getCard("nope")).toThrow("Unknown card: nope"));
+test("the AR model follows the showcase card", () => {
+  expect(arModel(getCard(showcase.ar))).toEqual({
+    href: `https://shutup.jp/${showcase.ar}.postcard.usdz`,
+    label: `View the ${getCard(showcase.ar).location!.name} postcard in AR`,
+  });
+});

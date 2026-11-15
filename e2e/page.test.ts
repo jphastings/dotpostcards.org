@@ -36,3 +36,14 @@ test("dark mode follows the system", async ({ page }) => {
     "rgb(0, 0, 0)",
   );
 });
+test("copy falls back to selecting the command when the clipboard refuses", async ({ page }) => {
+  await page.addInitScript(() => {
+    navigator.clipboard.writeText = () => Promise.reject(new Error("denied"));
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Copy" }).click();
+  await expect(page.getByRole("button", { name: "Press ⌘C" })).toBeVisible();
+  expect(await page.evaluate(() => getSelection()?.toString())).toBe(
+    "brew install jphastings/tools/postcards jphastings/tools/fastfoto-postcards",
+  );
+});

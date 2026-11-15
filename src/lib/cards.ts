@@ -65,3 +65,8 @@ export function transcriptionLanguage(side: Side): string | undefined {
   const language = locale?.split("-")[0];
   return language && new Intl.DisplayNames(["en"], { type: "language" }).of(language);
 }
+
+export const arModel = (card: Card) => ({
+  href: `https://shutup.jp/${card.name}.postcard.usdz`,
+  label: `View the ${card.location?.name ?? card.name} postcard in AR`,
+});

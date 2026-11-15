@@ -1,11 +1,17 @@
 <script lang="ts">
 	const install = 'brew install jphastings/tools/postcards jphastings/tools/fastfoto-postcards';
-	let copied = $state(false);
+	let status = $state<'Copy' | 'Copied' | 'Press ⌘C'>('Copy');
+	let command: HTMLElement;
 
 	async function copy() {
-		await navigator.clipboard.writeText(install);
-		copied = true;
-		setTimeout(() => (copied = false), 2000);
+		try {
+			await navigator.clipboard.writeText(install);
+			status = 'Copied';
+		} catch {
+			getSelection()?.selectAllChildren(command);
+			status = 'Press ⌘C';
+		}
+		setTimeout(() => (status = 'Copy'), 2000);
 	}
 </script>
 
@@ -24,8 +30,8 @@
 		<li>dates from postmarks or handwritten datestamps</li>
 	</ul>
 	<div class="install">
-		<code>{install}</code>
-		<button onclick={copy}>{copied ? 'Copied' : 'Copy'}</button>
+		<code bind:this={command}>{install}</code>
+		<button onclick={copy}>{status}</button>
 	</div>
 </section>
 

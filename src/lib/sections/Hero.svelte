@@ -60,6 +60,7 @@
 		position: absolute;
 		inset: -25%;
 		background: var(--hero-glow);
+		pointer-events: none;
 	}
 	.card :global(label.postcard) {
 		width: 100%;

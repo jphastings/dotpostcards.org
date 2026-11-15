@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getCard } from '$lib/cards';
+	import { arModel, getCard } from '$lib/cards';
+	import { showcase } from '$lib/showcase';
 
-	const athens = getCard('athens');
-	const { pxW, pxH } = athens.physical.frontSize;
+	const arCard = getCard(showcase.ar);
+	const { href, label } = arModel(arCard);
+	const { pxW, pxH } = arCard.physical.frontSize;
 
 	let canViewInAR = $state(false);
 	onMount(() => {
@@ -33,11 +35,11 @@
 		{#if canViewInAR}
 			<div>
 				<h3>In your room</h3>
-				<a rel="ar" href="https://shutup.jp/athens.postcard.usdz">
+				<a rel="ar" {href}>
 					<img
 						class="ar"
-						src={athens.src}
-						alt="View the Athens postcard in AR"
+						src={arCard.src}
+						alt={label}
 						style="aspect-ratio: {pxW} / {pxH}"
 					/>
 				</a>
