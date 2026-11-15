@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 test("prerendered HTML has content but no whole email address", () => {
   const html = readFileSync("build/index.html", "utf8");
   expect(html).toContain('class="postcard');
-  expect(html).toContain("Every postcard, kept whole.");
+  expect(html).toContain("The open digital postcard format");
   expect(html).not.toContain("jp@dotpostcard.org");
 });
 test("calls to action", async ({ page }) => {
@@ -17,8 +17,11 @@ test("calls to action", async ({ page }) => {
     "href",
     "https://shutup.jp",
   );
+  await expect(page.getByText("brew install jphastings/tools/fastfoto-postcards")).toBeVisible();
   await expect(
-    page.getByText("brew install jphastings/tools/postcards jphastings/tools/fastfoto-postcards"),
+    page
+      .locator("section", { hasText: "For developers." })
+      .getByText("brew install jphastings/tools/postcards"),
   ).toBeVisible();
   const contact = page.getByRole("link", { name: "Get in touch" });
   await contact.hover();
@@ -41,9 +44,21 @@ test("copy falls back to selecting the command when the clipboard refuses", asyn
     navigator.clipboard.writeText = () => Promise.reject(new Error("denied"));
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "Copy" }).click();
+  await page.getByRole("button", { name: "Copy" }).first().click();
   await expect(page.getByRole("button", { name: "Press ⌘C" })).toBeVisible();
   expect(await page.evaluate(() => getSelection()?.toString())).toBe(
-    "brew install jphastings/tools/postcards jphastings/tools/fastfoto-postcards",
+    "brew install jphastings/tools/fastfoto-postcards",
   );
+});
+test("shows a scanning session in a terminal", async ({ page }) => {
+  await page.goto("/");
+  const terminal = page.locator("pre", { hasText: "$ fastfoto-postcards" });
+  for (const line of [
+    "$ fastfoto-postcards --quality detail --format postcard --llm claude-code",
+    "⚙︎ Scanning postcards into postcard format…",
+    "⊕ Postcard scanned, analysing with your LLM…",
+    "✓ london-sights scanned",
+    "  ↳ Postcard (2.3MB)",
+  ])
+    expect(await terminal.textContent()).toContain(line);
 });

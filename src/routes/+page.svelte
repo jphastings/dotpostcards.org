@@ -9,8 +9,8 @@
 </script>
 
 <svelte:head>
-	<title>.postcard — every postcard, kept whole</title>
-	<meta name="description" content="Both sides and every detail of a postcard, in a single image." />
+	<title>.postcard — the open digital postcard format</title>
+	<meta name="description" content="Both sides of a postcard and everything known about it, in one ordinary image." />
 </svelte:head>
 
 <main>

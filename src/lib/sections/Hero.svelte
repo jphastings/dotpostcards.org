@@ -7,8 +7,10 @@
 <section class="hero">
 	<div class="copy">
 		<p class="eyebrow">.postcard</p>
-		<h1>Every postcard, kept whole.</h1>
-		<p class="lede">Both sides and every detail, in a single image.</p>
+		<h1>The open digital postcard format</h1>
+		<p class="lede">
+			Lovingly made by a geek with postcard fixation and the limited space of a London flat.
+		</p>
 		<p class="ctas">
 			<a class="pill" href="https://github.com/jphastings/postcard-collector.app/releases/latest/download/Postcards-macOS.zip">Download for Mac</a>
 			<a href="https://shutup.jp">See them in use ›</a>

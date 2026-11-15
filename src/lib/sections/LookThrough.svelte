@@ -14,11 +14,11 @@
 </script>
 
 <section>
-	<h2>Easy to look through.</h2>
+	<h2>Gorgeous to look through.</h2>
 	<div class="ways">
 		<div>
 			<h3>Postcard Collector</h3>
-			<p>Your whole collection, on your Mac.</p>
+			<p>Your entire collection. On your Mac.</p>
 			<a
 				class="pill"
 				href="https://github.com/jphastings/postcard-collector.app/releases/latest/download/Postcards-macOS.zip"
@@ -27,7 +27,7 @@
 		</div>
 		<div>
 			<h3>On the web</h3>
-			<p>Sites showing postcards today.</p>
+			<p>Already out in the wild.</p>
 			<ul>
 				<li><a href="https://shutup.jp">shutup.jp</a></li>
 			</ul>
