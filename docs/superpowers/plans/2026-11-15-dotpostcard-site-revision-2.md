@@ -4,7 +4,7 @@
 
 **Goal:** Apply JP's first-look feedback: a calmer "Flip or flop" band, a tongue-in-cheek voice, a scanner-only "Easy to make", and a three-tab file → front → back sequence for "Everything stays together".
 
-**Architecture:** Builds on the existing site (branch `sesh/dotpostcard-site`): `src/lib/cards.ts` + generated `cards.json`, `src/lib/showcase.ts`, `src/lib/Postcard.svelte` (library markup, vendored `postcards@0.49.0.css`), `src/lib/MetadataPanel.svelte`, sections in `src/lib/sections/`.
+**Architecture:** Builds on the existing site (branch `sesh/dotpostcard-site`): `src/lib/cards.ts` + generated `cards.json`, `src/lib/showcase.ts`, `src/lib/Postcard.svelte` (library markup, vendored `postcards@0.49.2.css`), `src/lib/MetadataPanel.svelte`, sections in `src/lib/sections/`.
 
 **Tech Stack:** unchanged (SvelteKit 2 / Svelte 5, pnpm, vitest + jsdom, Playwright).
 

@@ -49,10 +49,13 @@ label:has(.postcard) {
      doesn't draw masked layers whose transform uses container units when the page is opened from disk. */
   --rise: rotate(0deg);
   --reach: 0px;
-  --height: calc(var(--lift) + var(--reach) * var(--s));
+  --height: calc(var(--lift) + max(0px, var(--reach) - var(--lift)) * var(--s));
+  /* How far a point's shadow falls, per px of its height above the page */
+  --fall-x: calc(-1 * sin(var(--light-angle)) / tan(var(--light-elevation)));
+  --fall-y: calc(cos(var(--light-angle)) / tan(var(--light-elevation)));
   /* Projects each point onto the page (z=0) along the light: a shear by height.
      z keeps 1 so the matrix stays invertible (CSS doesn't render non-invertible transforms). */
-  --cast: matrix3d(1,0,0,0, 0,1,0,0, calc(-1 * sin(var(--light-angle)) / tan(var(--light-elevation))), calc(cos(var(--light-angle)) / tan(var(--light-elevation))), 1, 0, 0,0,0,1);
+  --cast: matrix3d(1,0,0,0, 0,1,0,0, var(--fall-x), var(--fall-y), 1, 0, 0,0,0,1);
 
   /* The blur sits on the parent: CSS applies filter before mask on one element, and
      blurring the untransformed parent keeps the blur in page space, not squashed with the shape. */
@@ -84,6 +87,23 @@ label:has(.postcard) {
     height: 100%;
     z-index: 1;
     transform: var(--p) translateZ(var(--lift));
+  }
+
+  /* A card that never turns doesn't need the masked .shadow, which Chrome won't draw when
+     the page is opened from disk. drop-shadow's blur is a radius: twice blur()'s deviation. */
+  &.flip-none {
+    .shadow {
+      display: none;
+    }
+
+    img {
+      filter: drop-shadow(
+        calc(var(--lift) * var(--fall-x))
+        calc(var(--lift) * var(--fall-y))
+        calc(var(--lift) * var(--shadow-softness) * 2)
+        var(--shadow-color)
+      );
+    }
   }
 
   &:not(.flip-none) {
@@ -141,7 +161,7 @@ label:has(.postcard) {
   }
 
   &.flip-book {
-    --rise: rotateY(-90deg) translateX(calc(50% * var(--s))) rotateY(90deg);
+    --rise: rotateY(-90deg) translateX(calc(max(0px, 50% - var(--lift)) * var(--s))) rotateY(90deg);
     --reach: calc(var(--card-w) / 2);
     --turn: rotateY(var(--flip));
     --back: rotateY(180deg);
@@ -150,7 +170,7 @@ label:has(.postcard) {
   }
 
   &.flip-calendar {
-    --rise: rotateX(90deg) translateY(calc(50% * var(--s))) rotateX(-90deg);
+    --rise: rotateX(90deg) translateY(calc(max(0px, 50% - var(--lift)) * var(--s))) rotateX(-90deg);
     --reach: calc(var(--card-h) / 2);
     --turn: rotateX(var(--flip));
     --back: rotateX(180deg);
@@ -161,7 +181,7 @@ label:has(.postcard) {
   &:is(.flip-left-hand, .flip-right-hand) {
     /* A hand flip turns the card a quarter-turn on the page, so a square box holds both sides */
     --box: calc((var(--aspect-ratio)) + (1 - (var(--aspect-ratio))) * var(--square-hand-flips));
-    --rise: rotateY(-90deg) translateX(calc(35.355% * var(--s))) rotateY(90deg) rotateX(90deg) translateY(calc(35.355% * var(--s))) rotateX(-90deg);
+    --rise: rotateY(-90deg) translateX(calc(max(0px, 35.355% - var(--lift) / 2) * var(--s))) rotateY(90deg) rotateX(90deg) translateY(calc(max(0px, 35.355% - var(--lift) / 2) * var(--s))) rotateX(-90deg);
     --reach: calc((var(--card-w) + var(--card-h)) * 0.35355);
   }
 
