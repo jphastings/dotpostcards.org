@@ -62,3 +62,16 @@ test("shows a scanning session in a terminal", async ({ page }) => {
   ])
     expect(await terminal.textContent()).toContain(line);
 });
+test("says why this scanner, and what an LLM can help with", async ({ page }) => {
+  await page.goto("/");
+  const make = page.locator("section", { hasText: "Ridiculously easy to make." });
+  await expect(make.getByText("Why this machine? Because I have one!")).toBeVisible();
+  await expect(make.getByText("Want to automate it all? Use an LLM to help with:")).toBeVisible();
+  await expect(make.getByRole("listitem")).toHaveText([
+    "alt-text/descriptions",
+    "orientation",
+    "handwriting transcription",
+    "location",
+    "dates",
+  ]);
+});

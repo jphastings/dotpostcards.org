@@ -23,10 +23,11 @@
 		/>
 		<div>
 			<p class="lede">Scan postcards rapidly with an Epson FastFoto FF-680W</p>
-			<p class="help">With optional LLM help for</p>
+			<p class="why">Why this machine? Because I have one! It's pretty great actually.</p>
+			<p class="help">Want to automate it all? Use an LLM to help with:</p>
 			<ul>
+				<li>alt-text/descriptions</li>
 				<li>orientation</li>
-				<li>descriptions</li>
 				<li>handwriting transcription</li>
 				<li>location</li>
 				<li>dates</li>
@@ -63,6 +64,9 @@
 		margin: 0;
 		color: var(--text);
 		font-weight: 600;
+	}
+	.why {
+		margin: 8px 0 0;
 	}
 	.help {
 		margin: 32px 0 12px;
