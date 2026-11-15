@@ -29,6 +29,12 @@ test("keyboard focus lands on a card's checkbox and outlines that card", async (
   expect(await label.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
 });
 
+test("a spinning card is not a tab stop", async ({ page }) => {
+  const box = page.locator("input:has(+ label.postcard.spin)").first();
+  await box.focus();
+  await expect(box).not.toBeFocused();
+});
+
 test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
 
@@ -38,5 +44,11 @@ test.describe("reduced motion", () => {
     expect(await flip(spinCard(page))).toBe(before);
     await spinCard(page).click();
     await expect.poll(() => flip(spinCard(page))).toBe("180deg");
+  });
+
+  test("a spinning card's checkbox takes keyboard focus", async ({ page }) => {
+    const box = page.locator("input:has(+ label.postcard.spin)").first();
+    await box.focus();
+    await expect(box).toBeFocused();
   });
 });

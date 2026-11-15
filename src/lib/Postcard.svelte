@@ -17,7 +17,14 @@
 	});
 </script>
 
-<input type="checkbox" {id} class="visually-hidden" aria-label="Flip postcard" bind:checked={flipped} />
+<input
+	type="checkbox"
+	{id}
+	class="visually-hidden"
+	class:spin={motion === 'spin'}
+	aria-label="Flip postcard"
+	bind:checked={flipped}
+/>
 <label
 	for={id}
 	class="postcard flip-{card.flip} {orientation(card)}"
@@ -47,6 +54,10 @@
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
+		/* Spinning cards can't be flipped, so their checkbox leaves the tab order until motion is reduced */
+		input.spin {
+			visibility: hidden;
+		}
 		:global(.postcard.spin) {
 			animation: postcard-spin 3s linear infinite;
 			transition: none;
