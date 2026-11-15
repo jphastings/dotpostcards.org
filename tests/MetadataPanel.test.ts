@@ -2,6 +2,11 @@ import { render, screen, within } from "@testing-library/svelte";
 import userEvent from "@testing-library/user-event";
 import MetadataPanel from "$lib/MetadataPanel.svelte";
 import { getCard } from "$lib/cards";
+import { showcase } from "$lib/showcase";
+
+test("the together card must be a calendar flip: the fold is a calendar flip of the file's lower half", () => {
+  expect(getCard(showcase.together).flip).toBe("calendar");
+});
 
 const panel = () => screen.getByRole("tabpanel");
 const selected = () => screen.getByRole("tab", { selected: true });
