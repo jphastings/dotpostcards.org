@@ -123,3 +123,33 @@ JP chose A.
 - Exact spacing, type sizes and section copy within the visual rules above, for JP's review.
 - How the USDZ/AR item is presented (e.g. an AR Quick Look link on iOS). Link to the live files on shutup.jp (e.g. `https://shutup.jp/athens.postcard.usdz`, which serves with CORS) rather than committing the binaries.
 
+
+## Revision 2 (after JP's first look at the built site)
+
+**Tone.** The site is a knowing, tongue-in-cheek pastiche of an Apple product page: a way-over-the-top sell for a postcard format, and it knows it. Copy leans into that, still short.
+
+**Hero.** Headline "The open digital postcard format"; sub-copy "Lovingly made by a geek with postcard fixation and the limited space of a London flat."
+
+**Flip or flop** (was "They look great"). Heading "Flip or flop", text beneath: "Store which way the postcard flips, for unnecessary accuracy." Only three cards: left-hand (`france`), book (`assisi`), right-hand (`china`); no calendar or ragged card. Continuous spinning was motion-sickness inducing, so instead a calm, sequential loop: left-hand flips (1s, the library's ease-in-out), 250ms later book flips, 250ms later right-hand flips; 2s pause; then each turns over again in the same order and direction, completing 360°; 2s pause; repeat (7s loop). Reduced motion: no loop; cards tap to flip.
+
+**Everything stays together.** Text beneath: "Just an image with standard XMP metadata inside, so you never lose context." Uses a calendar-flip card (`around-we-go`, from JP), because folding the file's lower half up behind the front *is* a calendar flip. Three tabs on the right drive a three-state sequence on the left (tapping the card advances to the next tab, cycling):
+
+1. **Postcard** — the raw file as stored: the web image, front stacked above back, with *pixel* dimensions down the right and along the bottom. The panel shows postcard-wide metadata (title, location, sent on, from, to, flip, physical size, file name).
+2. **Front** — the lower half folds up behind the front (rotating away from the viewer about the midline) and the measurements switch to cm as it folds; now a card, drawn by the library. Panel shows front-specific metadata (description, transcription, anonymised regions).
+3. **Back** — the card flips over (calendar flip); panel shows back-specific metadata.
+
+Measurements stay visible throughout (no fading on flip). The right-hand column keeps a constant height across tabs so nothing jumps. The anonymised-region swatch sits to the right of the word "Anonymised". Fields a card doesn't store are omitted; a tab with nothing stored says so plainly rather than inventing anything. Reduced motion: states swap without the fold animation.
+
+**Easy to make** — only about the scanner. Copy: "Scan postcards rapidly with an Epson FastFoto FF-680W". A photo of the scanner (`epson-ff680w.png`, from JP; transparent PNG whose scanner touches the edges, so it needs padding) sits beside the section. LLM-help chips: orientation, descriptions, handwriting transcription, location, dates. The install command is just `brew install jphastings/tools/fastfoto-postcards`, with a terminal-window mockup showing exactly:
+
+```
+$ fastfoto-postcards --quality detail --format postcard --llm claude-code
+⚙︎ Scanning postcards into postcard format…
+⊕ Postcard scanned, analysing with your LLM…
+✓ london-sights scanned
+  ↳ Postcard (2.3MB)
+```
+
+**For developers** gains the `postcards` CLI install: `brew install jphastings/tools/postcards`.
+
+**Showcase** becomes: hero `athens`, band `france`/`assisi`/`china`, together `around-we-go`, AR `athens`. `hold-on` and `dualism` are no longer used and are removed from the build.
