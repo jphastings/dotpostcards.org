@@ -161,21 +161,21 @@
 	.dim {
 		position: absolute;
 		font-size: 11px;
-		color: #6e6e73;
+		color: var(--secondary);
 	}
 	.dim.w {
 		left: 0;
 		right: 0;
-		bottom: -22px;
-		border-top: 1px solid #aaa;
+		top: calc(100% + 8px);
+		border-top: 1px solid var(--tertiary);
 		text-align: center;
 		padding-top: 2px;
 	}
 	.dim.h {
 		top: 0;
 		bottom: 0;
-		right: -30px;
-		border-left: 1px solid #aaa;
+		left: calc(100% + 8px);
+		border-left: 1px solid var(--tertiary);
 		writing-mode: vertical-rl;
 		text-align: center;
 		padding-left: 3px;
@@ -244,6 +244,15 @@
 	}
 	.foot code {
 		font-size: 12px;
-		color: #1d1d1f;
+		color: var(--text);
+	}
+	@media (max-width: 733px) {
+		.panel {
+			grid-template-columns: 1fr;
+			justify-items: center;
+		}
+		.stage {
+			width: 100%;
+		}
 	}
 </style>

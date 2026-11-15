@@ -1,0 +1,101 @@
+:root {
+  --bg: #fbfbfd;
+  --text: #1d1d1f;
+  --secondary: #6e6e73;
+  --tertiary: #86868b;
+  --panel: #f5f5f7;
+  --button: #0071e3;
+  --link: #0066cc;
+  --eyebrow: #bf4800;
+  --hero-glow: transparent;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000;
+    --text: #f5f5f7;
+    --secondary: #86868b;
+    --tertiary: #86868b;
+    --panel: #161617;
+    --link: #2997ff;
+    --eyebrow: #f56300;
+    --hero-glow: radial-gradient(closest-side, #2a2a2e, transparent);
+    --shadow-color: rgb(0 0 0 / 0.9);
+    --shadow-softness: 0.4;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.9em;
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.pill {
+  display: inline-block;
+  padding: 11px 22px;
+  border-radius: 980px;
+  background: var(--button);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 500;
+}
+.pill:hover {
+  text-decoration: none;
+  background: #0077ed;
+}
+
+main > section {
+  padding: 100px 22px;
+  text-align: center;
+}
+@media (max-width: 733px) {
+  main > section {
+    padding-block: 64px;
+  }
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-weight: 700;
+}
+@media (prefers-color-scheme: dark) {
+  h1,
+  h2 {
+    background: linear-gradient(180deg, #fff, #a1a1a6);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+}
+
+h2 {
+  font-size: clamp(36px, 6vw, 52px);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+
+.lede {
+  margin: 12px auto 0;
+  max-width: 34em;
+  font-size: clamp(19px, 2.2vw, 24px);
+  line-height: 1.35;
+  color: var(--secondary);
+}
