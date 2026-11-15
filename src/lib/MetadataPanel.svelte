@@ -37,9 +37,11 @@
 	const sideHasSecrets = $derived(!!side?.secrets?.length);
 	const showSide = $derived(!!(side?.description || transcription || sideHasSecrets));
 
-	const stageWidth = 240;
+	const cardLength = 240;
 	const { pxW, pxH } = $derived(card.physical.frontSize);
-	const frontBox = $derived({ width: stageWidth, height: (stageWidth * pxH) / pxW });
+	// Hand flips are drawn in a square box with the longer side at cardLength; others fill the width
+	const scale = $derived(cardLength / (isHeteroriented(card.flip) ? Math.max(pxW, pxH) : pxW));
+	const frontBox = $derived({ width: pxW * scale, height: pxH * scale });
 	const overlays = $derived(
 		(['front', 'back'] as const).map((name) => ({
 			name,
@@ -115,7 +117,7 @@
 						</dd>
 					{/if}
 					{#if sideHasSecrets}
-						<dt>Anonymised</dt>
+						<dt><span class="swatch" aria-hidden="true"></span>Anonymised</dt>
 						<dd>Anonymised regions (eg. for an address)</dd>
 					{/if}
 				</dl>
@@ -216,6 +218,21 @@
 	}
 	dd {
 		margin: 0;
+	}
+	.swatch {
+		display: inline-block;
+		width: 10px;
+		height: 10px;
+		margin-right: 6px;
+		box-sizing: border-box;
+		border: 1.5px dashed #ff375f;
+		border-radius: 2px;
+		vertical-align: -1px;
+		background: repeating-linear-gradient(
+			135deg,
+			rgba(255, 55, 95, 0.3) 0 2px,
+			transparent 2px 4px
+		);
 	}
 	.muted,
 	.foot {
