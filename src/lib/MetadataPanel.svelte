@@ -1,18 +1,16 @@
 <script lang="ts">
 	import Postcard from '$lib/Postcard.svelte';
-	import {
-		formatDate,
-		isHeteroriented,
-		sideSize,
-		transcriptionLanguage,
-		type Card,
-		type Flip
-	} from '$lib/cards';
+	import { cm, formatDate, transcriptionLanguage, type Card, type Flip } from '$lib/cards';
+
+	type View = 'file' | 'front' | 'back';
 
 	let { card }: { card: Card } = $props();
-	let flipped = $state(false);
+	let view = $state<View>('file');
+	let previous = $state<View>('file');
 
 	const uid = $props.id();
+	const views: View[] = ['file', 'front', 'back'];
+	const tabNames: Record<View, string> = { file: 'Postcard', front: 'Front', back: 'Back' };
 	const flipLabels: Record<Flip, string | undefined> = {
 		'left-hand': 'Left-hand',
 		'right-hand': 'Right-hand',
@@ -20,111 +18,178 @@
 		calendar: 'Calendar',
 		none: undefined
 	};
-	const cardRows = $derived(
+	const tabs: HTMLButtonElement[] = [];
+
+	const { cmW, cmH, pxW, pxH } = $derived(card.physical.frontSize);
+	// ponytail: the fold and overlays assume the library draws the card filling the label's width,
+	// as it does for calendar and book flips; a hand flip's squared box would need its own geometry.
+	const width = 280;
+	const height = $derived((width * pxH) / pxW);
+
+	const postcardRows = $derived(
 		[
 			['Location', card.location?.name],
 			['Sent on', card.sentOn && formatDate(card.sentOn)],
 			['From', card.sender?.name],
 			['To', card.recipient?.name],
-			['Flip', flipLabels[card.flip]]
+			['Flip', flipLabels[card.flip]],
+			['Size', `${cm(cmW)} × ${cm(cmH)}`]
 		].filter((row): row is [string, string] => !!row[1])
 	);
-
-	const showingBack = $derived(flipped && card.flip !== 'none');
-	const side = $derived(showingBack ? card.back : card.front);
-	const sideName = $derived(showingBack ? 'back' : 'front');
-	const transcription = $derived(side?.transcription?.text);
-	const language = $derived(side && transcriptionLanguage(side));
-	const sideHasSecrets = $derived(!!side?.secrets?.length);
-	const showSide = $derived(!!(side?.description || transcription || sideHasSecrets));
-
-	const cardLength = 240;
-	const { pxW, pxH } = $derived(card.physical.frontSize);
-	// Hand flips are drawn in a square box with the longer side at cardLength; others fill the width
-	const scale = $derived(cardLength / (isHeteroriented(card.flip) ? Math.max(pxW, pxH) : pxW));
-	const frontBox = $derived({ width: pxW * scale, height: pxH * scale });
-	const overlays = $derived(
-		(['front', 'back'] as const).map((name) => ({
-			name,
-			size: sideSize(card, name),
-			secrets: card[name]?.secrets ?? [],
-			box:
-				name === 'back' && isHeteroriented(card.flip)
-					? { width: frontBox.height, height: frontBox.width }
-					: frontBox
-		}))
+	const sides = $derived(
+		(['front', 'back'] as const).map((name) => {
+			const side = card[name];
+			return {
+				name,
+				description: side?.description,
+				transcription: side?.transcription?.text,
+				language: side && transcriptionLanguage(side),
+				secrets: side?.secrets ?? []
+			};
+		})
 	);
+
+	function show(next: View) {
+		previous = view;
+		view = next;
+	}
+
+	function onStageClick(event: MouseEvent) {
+		// The card's own checkbox, toggled from the keyboard, flips via the binding instead
+		if (event.target instanceof HTMLInputElement) return;
+		event.preventDefault();
+		show(views[(views.indexOf(view) + 1) % views.length]);
+	}
+
+	function onTabKeydown(event: KeyboardEvent) {
+		const i = views.indexOf(view);
+		const moves: Record<string, number> = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: -1 };
+		if (!(event.key in moves)) return;
+		event.preventDefault();
+		const next = (moves[event.key] + views.length) % views.length;
+		show(views[next]);
+		tabs[next].focus();
+	}
 </script>
 
 <div class="panel">
-	<div class="stage">
-		<Postcard {card} bind:flipped />
-		{#each overlays as { name, size, secrets, box } (name)}
-			<div
-				class="overlay"
-				class:active={name === sideName}
-				style="width: {box.width}px; height: {box.height}px"
-			>
-				<span class="dim w">{size.width}</span>
-				<span class="dim h">{size.height}</span>
-				{#if secrets.length}
-					<svg viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true">
-						<defs>
-							<pattern
-								id="hatch-{uid}-{name}"
-								width="10"
-								height="10"
-								patternUnits="userSpaceOnUse"
-								patternTransform="scale({1 / box.width} {1 / box.height})"
-							>
-								<path d="M-1 1L1 -1M0 10L10 0M9 11L11 9" stroke="rgba(255,55,95,.3)" stroke-width="3" />
-							</pattern>
-						</defs>
-						{#each secrets as secret, i (i)}
-							<polygon
-								points={secret.points.map(([x, y]) => `${x},${y}`).join(' ')}
-								fill="url(#hatch-{uid}-{name})"
-							/>
-						{/each}
-					</svg>
-				{/if}
+	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+	<div class="stage" onclick={onStageClick}>
+		<div
+			class="figure"
+			class:folded={view !== 'file'}
+			class:after-flip={view === 'file' && previous === 'back'}
+			style="--w: {width}px; --h: {height}px"
+		>
+			<div class="file" style:visibility={view === 'file' ? null : 'hidden'}>
+				<img src={card.src} alt="{card.name}.postcard.webp: the front above the back" />
+				<img class="back-half" src={card.src} alt="" />
 			</div>
-		{/each}
+			<div class="card" style:visibility={view === 'file' ? 'hidden' : null}>
+				<Postcard
+					{card}
+					bind:flipped={() => view === 'back', (back) => show(back ? 'back' : 'front')}
+				/>
+				{#each sides as { name, secrets } (name)}
+					{#if secrets.length}
+						<svg
+							class:shown={name === view}
+							viewBox="0 0 1 1"
+							preserveAspectRatio="none"
+							aria-hidden="true"
+						>
+							<defs>
+								<pattern
+									id="hatch-{uid}-{name}"
+									width="10"
+									height="10"
+									patternUnits="userSpaceOnUse"
+									patternTransform="scale({1 / width} {1 / height})"
+								>
+									<path d="M-1 1L1 -1M0 10L10 0M9 11L11 9" stroke="rgba(255,55,95,.3)" stroke-width="3" />
+								</pattern>
+							</defs>
+							{#each secrets as secret, i (i)}
+								<polygon
+									points={secret.points.map(([x, y]) => `${x},${y}`).join(' ')}
+									fill="url(#hatch-{uid}-{name})"
+								/>
+							{/each}
+						</svg>
+					{/if}
+				{/each}
+			</div>
+			<div class="measure" aria-hidden="true">
+				<span class="dim w">{view === 'file' ? `${pxW} px` : cm(cmW)}</span>
+				<span class="dim h">{view === 'file' ? `${2 * pxH} px` : cm(cmH)}</span>
+			</div>
+		</div>
 	</div>
 
-	<div class="groups">
-		<section>
-			<h3>The card</h3>
-			<dl>
-				{#each cardRows as [label, value] (label)}
-					<dt>{label}</dt>
-					<dd>{value}</dd>
-				{/each}
-			</dl>
-		</section>
-		{#if showSide && side}
-			<section aria-live="polite">
-				<h3>This side · {sideName}</h3>
+	<div class="info">
+		<div class="tabs" role="tablist" aria-label="Stored in the file">
+			{#each views as v, i (v)}
+				<button
+					bind:this={tabs[i]}
+					role="tab"
+					id="{uid}-tab-{v}"
+					aria-selected={v === view}
+					aria-controls="{uid}-panel-{v}"
+					tabindex={v === view ? 0 : -1}
+					onclick={() => show(v)}
+					onkeydown={onTabKeydown}>{tabNames[v]}</button
+				>
+			{/each}
+		</div>
+		<div class="panels">
+			<div
+				role="tabpanel"
+				id="{uid}-panel-file"
+				aria-labelledby="{uid}-tab-file"
+				tabindex="0"
+				style:visibility={view === 'file' ? null : 'hidden'}
+			>
 				<dl>
-					{#if side.description}
-						<dt>Description</dt>
-						<dd>{side.description}</dd>
-					{/if}
-					{#if transcription}
-						<dt>Transcription</dt>
-						<dd>
-							“{transcription}”
-							{#if language}<span class="muted">({language})</span>{/if}
-						</dd>
-					{/if}
-					{#if sideHasSecrets}
-						<dt><span class="swatch" aria-hidden="true"></span>Anonymised</dt>
-						<dd>Anonymised regions (eg. for an address)</dd>
-					{/if}
+					{#each postcardRows as [label, value] (label)}
+						<dt>{label}</dt>
+						<dd>{value}</dd>
+					{/each}
+					<dt>File</dt>
+					<dd><code>{card.name}.postcard.webp</code></dd>
 				</dl>
-			</section>
-		{/if}
-		<p class="foot">Stored as XMP inside <code>{card.name}.postcard.webp</code></p>
+			</div>
+			{#each sides as { name, description, transcription, language, secrets } (name)}
+				<div
+					role="tabpanel"
+					id="{uid}-panel-{name}"
+					aria-labelledby="{uid}-tab-{name}"
+					tabindex="0"
+					style:visibility={view === name ? null : 'hidden'}
+				>
+					{#if description || transcription || secrets.length}
+						<dl>
+							{#if description}
+								<dt>Description</dt>
+								<dd>{description}</dd>
+							{/if}
+							{#if transcription}
+								<dt>Transcription</dt>
+								<dd>
+									“{transcription}”
+									{#if language}<span class="muted">({language})</span>{/if}
+								</dd>
+							{/if}
+							{#if secrets.length}
+								<dt>Anonymised<span class="swatch" aria-hidden="true"></span></dt>
+								<dd>Anonymised regions (eg. for an address)</dd>
+							{/if}
+						</dl>
+					{:else}
+						<p class="muted">Nothing stored about this side.</p>
+					{/if}
+				</div>
+			{/each}
+		</div>
 	</div>
 </div>
 
@@ -137,32 +202,72 @@
 		text-align: left;
 	}
 	.stage {
-		position: relative;
-		width: 380px;
-		height: 380px;
 		display: grid;
-		place-items: center;
+		justify-content: center;
+		padding: 0 28px 28px 0;
+		cursor: pointer;
+		-webkit-tap-highlight-color: transparent;
+		--lift: 0px;
 	}
-	.stage :global(label.postcard) {
-		width: 240px;
+	.figure {
+		--delay: 0s;
+		position: relative;
+		width: var(--w);
+		height: calc(2 * var(--h));
 	}
-	.overlay {
+	.figure.after-flip {
+		--delay: 1s;
+	}
+	.file {
 		position: absolute;
 		inset: 0;
-		margin: auto;
-		pointer-events: none;
-		z-index: 5;
-		opacity: 0;
-		transition: opacity 0.2s;
 	}
-	.overlay.active {
-		opacity: 1;
-		transition: opacity 0.4s 0.95s;
+	.folded .file {
+		transform: translateY(calc(var(--h) / 2));
+	}
+	.file img {
+		display: block;
+		width: var(--w);
+		height: var(--h);
+		object-fit: cover;
+		object-position: top;
+	}
+	.file .back-half {
+		object-position: bottom;
+		transform-origin: top;
+		transform: perspective(1000px) rotateX(0deg);
+		backface-visibility: hidden;
+	}
+	.folded .back-half {
+		transform: perspective(1000px) rotateX(-180deg);
+	}
+	.card {
+		position: absolute;
+		top: calc(var(--h) / 2);
+		left: 0;
+		width: var(--w);
+		height: var(--h);
+	}
+	.card :global(label.postcard) {
+		width: 100%;
+	}
+	.measure {
+		position: absolute;
+		left: 0;
+		width: var(--w);
+		top: 0;
+		height: calc(2 * var(--h));
+		pointer-events: none;
+	}
+	.folded .measure {
+		top: calc(var(--h) / 2);
+		height: var(--h);
 	}
 	.dim {
 		position: absolute;
 		font-size: 11px;
 		color: var(--secondary);
+		white-space: nowrap;
 	}
 	.dim.w {
 		left: 0;
@@ -186,6 +291,12 @@
 		inset: 0;
 		width: 100%;
 		height: 100%;
+		z-index: 5;
+		pointer-events: none;
+		opacity: 0;
+	}
+	svg.shown {
+		opacity: 1;
 	}
 	polygon {
 		stroke: #ff375f;
@@ -193,16 +304,72 @@
 		stroke-dasharray: 4 3;
 		vector-effect: non-scaling-stroke;
 	}
-	.groups {
-		display: grid;
-		gap: 26px;
+
+	@media (prefers-reduced-motion: no-preference) {
+		.file {
+			transition:
+				transform 1s ease-in-out var(--delay),
+				visibility 0s var(--delay);
+		}
+		.folded .file {
+			transition:
+				transform 1s ease-in-out,
+				visibility 0s 1s;
+		}
+		.back-half {
+			transition: transform 1s ease-in-out var(--delay);
+		}
+		.measure {
+			transition:
+				top 1s ease-in-out var(--delay),
+				height 1s ease-in-out var(--delay);
+		}
+		.card {
+			transition: visibility 0s var(--delay);
+		}
+		.folded .card {
+			transition: visibility 0s 1s;
+		}
+		svg {
+			transition: opacity 0.2s;
+		}
+		svg.shown {
+			transition: opacity 0.4s 0.95s;
+		}
 	}
-	h3 {
-		margin: 0 0 10px;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--secondary);
-		letter-spacing: 0.02em;
+	@media (prefers-reduced-motion: reduce) {
+		.card :global(label.postcard) {
+			transition: none;
+		}
+	}
+
+	.tabs {
+		display: inline-flex;
+		margin-bottom: 28px;
+		padding: 2px;
+		border-radius: 9px;
+		background: rgb(118 118 128 / 0.12);
+	}
+	[role='tab'] {
+		padding: 6px 18px;
+		border: 0;
+		border-radius: 7px;
+		background: none;
+		color: var(--text);
+		font: inherit;
+		font-size: 13px;
+		font-weight: 500;
+		cursor: pointer;
+	}
+	[role='tab'][aria-selected='true'] {
+		background: #fff;
+		box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+	}
+	.panels {
+		display: grid;
+	}
+	[role='tabpanel'] {
+		grid-area: 1 / 1;
 	}
 	dl {
 		display: grid;
@@ -220,11 +387,14 @@
 	dd {
 		margin: 0;
 	}
+	dd code {
+		font-size: 13px;
+	}
 	.swatch {
 		display: inline-block;
 		width: 10px;
 		height: 10px;
-		margin-right: 6px;
+		margin-left: 6px;
 		box-sizing: border-box;
 		border: 1.5px dashed #ff375f;
 		border-radius: 2px;
@@ -235,25 +405,30 @@
 			transparent 2px 4px
 		);
 	}
-	.muted,
-	.foot {
+	.muted {
 		color: var(--secondary);
 	}
-	.foot {
+	p.muted {
 		margin: 0;
-		font-size: 13px;
+		font-size: 15px;
 	}
-	.foot code {
-		font-size: 12px;
-		color: var(--text);
+
+	@media (prefers-color-scheme: dark) {
+		.tabs {
+			background: rgb(118 118 128 / 0.24);
+		}
+		[role='tab'][aria-selected='true'] {
+			background: #636366;
+		}
 	}
 	@media (max-width: 733px) {
 		.panel {
 			grid-template-columns: 1fr;
-			justify-items: center;
 		}
-		.stage {
+		.info {
+			justify-self: center;
 			width: 100%;
+			max-width: 34em;
 		}
 	}
 </style>

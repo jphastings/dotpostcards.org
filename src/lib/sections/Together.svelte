@@ -6,7 +6,7 @@
 
 <section>
 	<h2>Everything stays together.</h2>
-	<p class="lede">Both sides and everything known about the card, inside one ordinary image.</p>
+	<p class="lede">Just an image with standard XMP metadata inside, so you never lose context.</p>
 	<div class="panel">
 		<MetadataPanel card={getCard(showcase.together)} />
 	</div>

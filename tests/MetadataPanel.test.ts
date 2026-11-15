@@ -1,61 +1,59 @@
-import { render, screen } from "@testing-library/svelte";
+import { render, screen, within } from "@testing-library/svelte";
 import userEvent from "@testing-library/user-event";
 import MetadataPanel from "$lib/MetadataPanel.svelte";
-import { getCard, type Card } from "$lib/cards";
+import { getCard } from "$lib/cards";
 
-test("shows iceland as stored, front first", () => {
-  render(MetadataPanel, { card: getCard("iceland") });
-  for (const v of [
-    "Reykjavík, Iceland",
-    "13 January 2023",
-    "Claire",
-    "JP",
-    "Left-hand",
-    "10.8 cm",
-    "15.2 cm",
-  ])
-    expect(screen.getAllByText(v).length).toBeGreaterThan(0);
-  expect(screen.getByText(/fiendishly grinning/)).toBeVisible();
-  expect(screen.queryByText("“Haltu Kjafti, JP”")).toBeNull();
-  expect(screen.queryByRole("link")).toBeNull();
-});
-test("flipping shows the back: transcription and anonymised region", async () => {
-  const { container } = render(MetadataPanel, { card: getCard("iceland") });
-  await userEvent.click(screen.getByRole("checkbox", { name: /^Flip/ }));
-  expect(screen.getByText("“Haltu Kjafti, JP”")).toBeInTheDocument();
-  expect(screen.getByText("(Icelandic)")).toBeInTheDocument();
-  expect(screen.getByText("Anonymised regions (eg. for an address)")).toBeInTheDocument();
-  expect(container.querySelectorAll("polygon")).toHaveLength(1);
-});
-test("omits what a card does not store", () => {
-  const sparse: Card = {
-    ...getCard("athens"),
-    sentOn: undefined,
-    sender: undefined,
-    recipient: undefined,
-    back: undefined,
-  };
-  render(MetadataPanel, { card: sparse });
-  for (const label of ["Sent on", "From", "To"]) expect(screen.queryByText(label)).toBeNull();
+const panel = () => screen.getByRole("tabpanel");
+const selected = () => screen.getByRole("tab", { selected: true });
+
+test("starts on the postcard as stored, inventing nothing", () => {
+  render(MetadataPanel, { card: getCard("around-we-go") });
+  expect(selected()).toHaveTextContent("Postcard");
+  for (const v of ["Calendar", "14.2 cm × 9.9 cm", "around-we-go.postcard.webp"])
+    expect(within(panel()).getByText(v)).toBeVisible();
+  for (const label of ["Location", "Sent on", "From", "To"])
+    expect(within(panel()).queryByText(label)).toBeNull();
   expect(document.body.textContent).not.toMatch(/undefined/);
 });
-test.each([
-  ["china", [150, 240], [240, 150]],
-  ["athens", [240, 165.6], [240, 165.6]],
-])("%s overlays register on the drawn card", (name, front, back) => {
-  const { container } = render(MetadataPanel, { card: getCard(name) });
-  const [frontBox, backBox] = [...container.querySelectorAll<HTMLElement>(".overlay")].map((el) => [
-    parseFloat(el.style.width),
-    parseFloat(el.style.height),
-  ]);
-  expect(frontBox[0]).toBeCloseTo(front[0], 0);
-  expect(frontBox[1]).toBeCloseTo(front[1], 0);
-  expect(backBox[0]).toBeCloseTo(back[0], 0);
-  expect(backBox[1]).toBeCloseTo(back[1], 0);
+
+test("each side's tab shows what is stored about that side, or says there is nothing", async () => {
+  render(MetadataPanel, { card: getCard("around-we-go") });
+  await userEvent.click(screen.getByRole("tab", { name: "Front" }));
+  expect(within(panel()).getByText(/Around We Go!/)).toBeVisible();
+  await userEvent.click(screen.getByRole("tab", { name: "Back" }));
+  expect(within(panel()).getByText("Nothing stored about this side.")).toBeVisible();
 });
-test("a card that does not flip never shows its back", async () => {
-  const card = getCard("iceland");
-  render(MetadataPanel, { card: { ...card, flip: "none" } });
-  await userEvent.click(screen.getByRole("checkbox", { name: /^Flip/ }));
-  expect(screen.queryByText("“Haltu Kjafti, JP”")).toBeNull();
+
+test("the back tab shows a transcription with its language, and anonymised regions", async () => {
+  render(MetadataPanel, { card: getCard("iceland") });
+  await userEvent.click(screen.getByRole("tab", { name: "Back" }));
+  expect(within(panel()).getByText(/Haltu Kjafti, JP/)).toBeVisible();
+  expect(within(panel()).getByText("(Icelandic)")).toBeVisible();
+  expect(within(panel()).getByText("Anonymised regions (eg. for an address)")).toBeVisible();
+  const term = within(panel()).getByText("Anonymised");
+  expect(term.lastElementChild).toHaveClass("swatch");
+  expect(term.firstChild?.textContent?.trim()).toBe("Anonymised");
+});
+
+test("arrow keys move between tabs", async () => {
+  render(MetadataPanel, { card: getCard("around-we-go") });
+  selected().focus();
+  await userEvent.keyboard("{ArrowRight}");
+  expect(selected()).toHaveTextContent("Front");
+  expect(selected()).toHaveFocus();
+  await userEvent.keyboard("{End}");
+  expect(selected()).toHaveTextContent("Back");
+  await userEvent.keyboard("{ArrowRight}");
+  expect(selected()).toHaveTextContent("Postcard");
+});
+
+test("clicking the card steps through file, front and back", async () => {
+  const card = getCard("around-we-go");
+  render(MetadataPanel, { card });
+  await userEvent.click(screen.getByRole("img", { name: /around-we-go\.postcard\.webp/ }));
+  expect(selected()).toHaveTextContent("Front");
+  await userEvent.click(screen.getByRole("img", { name: card.front.description }));
+  expect(selected()).toHaveTextContent("Back");
+  await userEvent.click(screen.getByRole("img", { name: card.front.description }));
+  expect(selected()).toHaveTextContent("Postcard");
 });
