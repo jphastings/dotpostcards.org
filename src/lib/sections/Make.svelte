@@ -42,7 +42,7 @@
 	.help {
 		margin: 40px 0 12px;
 		font-size: 14px;
-		color: var(--tertiary);
+		color: var(--secondary);
 	}
 	ul {
 		display: flex;

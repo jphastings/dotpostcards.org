@@ -10,6 +10,7 @@
 
 	const uid = $props.id();
 	const id = `postcard-${uid}`;
+	const place = $derived(card.location?.name ?? card.name);
 	const style = $derived.by(() => {
 		const { pxW, pxH } = card.physical.frontSize;
 		const base = `--postcard: url('${card.src}'); --aspect-ratio: ${pxW} / ${pxH}`;
@@ -22,7 +23,7 @@
 	{id}
 	class="visually-hidden"
 	class:spin={motion === 'spin'}
-	aria-label="Flip postcard"
+	aria-label="Flip the {place} postcard"
 	bind:checked={flipped}
 />
 <label
@@ -30,7 +31,7 @@
 	class="postcard flip-{card.flip} {orientation(card)}"
 	class:spin={motion === 'spin'}
 	role="img"
-	aria-label={card.front.description}
+	aria-label={card.front.description ?? place}
 	{style}
 >
 	<img src={card.src} alt="" loading="lazy" />

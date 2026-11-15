@@ -6,7 +6,7 @@
 </script>
 
 <footer id="contact">
-	<a href={contact} onpointerenter={reveal} onfocus={reveal} ontouchstart={reveal}>Get in touch</a>
+	<a href={contact} onpointerenter={reveal} onfocus={reveal} onclick={reveal} ontouchstart={reveal}>Get in touch</a>
 	<a href="https://github.com/jphastings/dotpostcard">dotpostcard on GitHub</a>
 	<a href="https://github.com/jphastings/postcard-collector.app">Postcard Collector on GitHub</a>
 </footer>

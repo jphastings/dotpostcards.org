@@ -21,7 +21,7 @@ test("shows iceland as stored, front first", () => {
 });
 test("flipping shows the back: transcription and anonymised region", async () => {
   const { container } = render(MetadataPanel, { card: getCard("iceland") });
-  await userEvent.click(screen.getByRole("checkbox", { name: "Flip postcard" }));
+  await userEvent.click(screen.getByRole("checkbox", { name: /^Flip/ }));
   expect(screen.getByText("“Haltu Kjafti, JP”")).toBeInTheDocument();
   expect(screen.getByText("(Icelandic)")).toBeInTheDocument();
   expect(screen.getByText("Anonymised regions (eg. for an address)")).toBeInTheDocument();
@@ -52,4 +52,10 @@ test.each([
   expect(frontBox[1]).toBeCloseTo(front[1], 0);
   expect(backBox[0]).toBeCloseTo(back[0], 0);
   expect(backBox[1]).toBeCloseTo(back[1], 0);
+});
+test("a card that does not flip never shows its back", async () => {
+  const card = getCard("iceland");
+  render(MetadataPanel, { card: { ...card, flip: "none" } });
+  await userEvent.click(screen.getByRole("checkbox", { name: /^Flip/ }));
+  expect(screen.queryByText("“Haltu Kjafti, JP”")).toBeNull();
 });

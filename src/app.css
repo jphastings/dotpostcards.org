@@ -70,10 +70,6 @@ main > section {
   text-align: center;
 }
 @media (max-width: 733px) {
-  main {
-    overflow-x: clip;
-  }
-
   main > section {
     padding-block: 64px;
   }

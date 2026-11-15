@@ -30,8 +30,9 @@
 		].filter((row): row is [string, string] => !!row[1])
 	);
 
-	const side = $derived(flipped ? card.back : card.front);
-	const sideName = $derived(flipped ? 'back' : 'front');
+	const showingBack = $derived(flipped && card.flip !== 'none');
+	const side = $derived(showingBack ? card.back : card.front);
+	const sideName = $derived(showingBack ? 'back' : 'front');
 	const transcription = $derived(side?.transcription?.text);
 	const language = $derived(side && transcriptionLanguage(side));
 	const sideHasSecrets = $derived(!!side?.secrets?.length);
@@ -93,7 +94,7 @@
 
 	<div class="groups">
 		<section>
-			<h4>The card</h4>
+			<h3>The card</h3>
 			<dl>
 				{#each cardRows as [label, value] (label)}
 					<dt>{label}</dt>
@@ -102,8 +103,8 @@
 			</dl>
 		</section>
 		{#if showSide && side}
-			<section>
-				<h4>This side · {sideName}</h4>
+			<section aria-live="polite">
+				<h3>This side · {sideName}</h3>
 				<dl>
 					{#if side.description}
 						<dt>Description</dt>
@@ -196,11 +197,11 @@
 		display: grid;
 		gap: 26px;
 	}
-	h4 {
+	h3 {
 		margin: 0 0 10px;
 		font-size: 12px;
 		font-weight: 600;
-		color: #86868b;
+		color: var(--secondary);
 		letter-spacing: 0.02em;
 	}
 	dl {
@@ -212,7 +213,7 @@
 		line-height: 1.45;
 	}
 	dt {
-		color: #86868b;
+		color: var(--secondary);
 		font-size: 13px;
 		padding-top: 2px;
 	}
@@ -236,7 +237,7 @@
 	}
 	.muted,
 	.foot {
-		color: #86868b;
+		color: var(--secondary);
 	}
 	.foot {
 		margin: 0;
