@@ -11,6 +11,7 @@
 	let side = $state<'front' | 'back'>('front');
 	let turning = $state(false);
 	let flipped = $state(false);
+	let figureEl: HTMLDivElement;
 	let cardEl: HTMLDivElement;
 
 	const uid = $props.id();
@@ -43,27 +44,39 @@
 	);
 	const sides = $derived(
 		(['front', 'back'] as const).map((name) => {
-			const side = card[name];
+			const stored = card[name];
 			return {
 				name,
-				description: side?.description,
-				transcription: side?.transcription?.text,
-				language: side && transcriptionLanguage(side),
-				secrets: side?.secrets ?? []
+				description: stored?.description,
+				transcription: stored?.transcription?.text,
+				language: stored && transcriptionLanguage(stored),
+				secrets: stored?.secrets ?? []
 			};
 		})
 	);
 
-	// The card only turns over in view; while it's hidden behind the fold it snaps to its new side
-	async function show(next: View, inView = getComputedStyle(cardEl).visibility === 'visible') {
+	// Never jumps: mid-fold, the fold carries on (or reverses) on the same side, and the card
+	// turns over to the chosen face once it has landed
+	function show(next: View, cardShown = getComputedStyle(cardEl).visibility === 'visible') {
 		if (next === view) return;
-		turning = inView && next !== 'file';
+		const unfolded = !(parseFloat(getComputedStyle(figureEl).getPropertyValue('--fold')) > 0);
 		view = next;
-		if (next !== 'file') side = next;
+		if (next !== 'file' && (cardShown || unfolded)) settle(cardShown);
+	}
+
+	// While hidden behind the fold, the card snaps to the side being folded to; in view it turns over
+	async function settle(inView: boolean) {
+		if (view === 'file') return;
+		turning = inView;
+		side = view;
 		// Whether the flip animates hangs off the classes set above, so they must land first: a
 		// style recalc between the two (Chrome forces one when a tab has focus) would use stale ones
 		await tick();
 		flipped = view === 'back';
+	}
+
+	function onCardTransitionEnd(event: TransitionEvent) {
+		if (event.target === cardEl && event.propertyName === 'visibility') settle(true);
 	}
 
 	function onStageClick(event: MouseEvent) {
@@ -90,6 +103,7 @@
 	<div class="stage" onclick={onStageClick}>
 		<div
 			class="figure"
+			bind:this={figureEl}
 			class:folded={view !== 'file'}
 			class:to-back={side === 'back'}
 			class:turning
@@ -103,7 +117,12 @@
 				/>
 				<img class="back-half" src={card.src} alt="" />
 			</div>
-			<div class="card" bind:this={cardEl} style:visibility={view === 'file' ? 'hidden' : null}>
+			<div
+				class="card"
+				bind:this={cardEl}
+				style:visibility={view === 'file' ? 'hidden' : null}
+				ontransitionend={onCardTransitionEnd}
+			>
 				<Postcard
 					{card}
 					bind:flipped={() => flipped, (back) => show(back ? 'back' : 'front', true)}
@@ -111,7 +130,7 @@
 				{#each sides as { name, secrets } (name)}
 					{#if secrets.length}
 						<svg
-							class:shown={name === view}
+							class:shown={name === (flipped ? 'back' : 'front')}
 							viewBox="0 0 1 1"
 							preserveAspectRatio="none"
 							aria-hidden="true"

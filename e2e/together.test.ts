@@ -34,25 +34,34 @@ test("the front faces up, the back is flipped over", async ({ page }) => {
   await expect.poll(() => flip(page)).toBe("180deg");
 });
 
-// Seeks every running animation and transition to each time, sampling the card and the file's halves
-const samplesAt = (page: Page, times: number[]) =>
-  section(page).evaluate((el, times) => {
-    const style = getComputedStyle(el.querySelector("label.postcard")!);
-    const height = (half: string) => el.querySelector(half)!.getBoundingClientRect().height;
-    const animations = document.getAnimations();
-    return times.map((ms) => {
-      for (const a of animations) {
-        a.pause();
-        a.currentTime = ms;
-      }
-      return {
-        flip: parseFloat(style.getPropertyValue("--flip")),
-        cardShown: style.visibility === "visible",
-        front: height(".front-half"),
-        back: height(".back-half"),
-      };
-    });
-  }, times);
+// Seeks the running animations and transitions (every one, or just the card's) to each time,
+// sampling the card, the file's halves and the measurements
+const samplesAt = (page: Page, times: number[], cardOnly = false) =>
+  section(page).evaluate(
+    (el, [times, cardOnly]) => {
+      const label = el.querySelector("label.postcard")!;
+      const style = getComputedStyle(label);
+      const height = (selector: string) =>
+        el.querySelector(selector)!.getBoundingClientRect().height;
+      const animations = cardOnly ? label.getAnimations() : document.getAnimations();
+      return times.map((ms) => {
+        for (const a of animations) {
+          a.pause();
+          a.currentTime = ms;
+        }
+        return {
+          flip: parseFloat(style.getPropertyValue("--flip")),
+          cardShown: style.visibility === "visible",
+          front: height(".front-half"),
+          back: height(".back-half"),
+          toBack: el.querySelector(".figure")!.classList.contains("to-back"),
+          measure: height(".measure"),
+          card: height("label.postcard"),
+        };
+      });
+    },
+    [times, cardOnly] as const,
+  );
 const midFold = [250, 500, 750];
 
 test("from the file, the back is reached by folding the front away behind it", async ({ page }) => {
@@ -85,6 +94,34 @@ test("between front and back, the card turns over in view", async ({ page }) => 
   expect(flip).toBeGreaterThan(0);
   expect(flip).toBeLessThan(180);
 });
+
+for (const [first, then] of [
+  ["Back", "Front"],
+  ["Front", "Back"],
+] as const)
+  test(`picking the ${then.toLowerCase()} while folding to the ${first.toLowerCase()} finishes the fold, then turns the card over`, async ({
+    page,
+  }) => {
+    await tab(page, first).click();
+    await samplesAt(page, [400]);
+    await tab(page, then).click();
+    await expect(tab(page, then)).toHaveAttribute("aria-selected", "true");
+
+    const folding = await samplesAt(page, [400, 700, 1050]);
+    expect(folding.map((s) => s.toBack)).toEqual(Array(3).fill(first === "Back"));
+    const firstFlip = first === "Back" ? 180 : 0;
+    expect(folding.map((s) => s.flip)).toEqual(Array(3).fill(firstFlip));
+    const { front, back } = folding[1];
+    expect(first === "Back" ? front < back : back < front).toBe(true);
+
+    await expect.poll(() => card(page).evaluate((el) => el.getAnimations().length)).toBe(1);
+    const [turning, landed] = await samplesAt(page, [500, 1050], true);
+    expect(turning.flip).toBeGreaterThan(0);
+    expect(turning.flip).toBeLessThan(180);
+    expect(landed.flip).toBe(180 - firstFlip);
+    expect(landed.toBack).toBe(then === "Back");
+    expect(landed.measure).toBeCloseTo(landed.card, 0);
+  });
 
 test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
