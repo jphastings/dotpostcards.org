@@ -3,6 +3,9 @@ name: Deploy
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -28,6 +31,7 @@ jobs:
       - run: pnpm test:e2e
 
   deploy:
+    if: github.event_name != 'pull_request'
     needs: test
     runs-on: ubuntu-latest
     permissions:
