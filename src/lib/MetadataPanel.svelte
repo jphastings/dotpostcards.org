@@ -73,13 +73,14 @@
 </script>
 
 <div class="panel">
+	<!-- Clicking the card is a shortcut for the tabs, which are the keyboard route -->
 	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
 	<div class="stage" onclick={onStageClick}>
 		<div
 			class="figure"
 			class:folded={view !== 'file'}
 			class:after-flip={view === 'file' && previous === 'back'}
-			style="--w: {width}px; --h: {height}px"
+			style="--w: {width}px; --h: {height}px; --hn: {height}"
 		>
 			<div class="file" style:visibility={view === 'file' ? null : 'hidden'}>
 				<img src={card.src} alt="{card.name}.postcard.webp: the front above the back" />
@@ -120,8 +121,8 @@
 				{/each}
 			</div>
 			<div class="measure" aria-hidden="true">
-				<span class="dim w">{view === 'file' ? `${pxW} px` : cm(cmW)}</span>
-				<span class="dim h">{view === 'file' ? `${2 * pxH} px` : cm(cmH)}</span>
+				<span class="dim w"><span class="px">{pxW} px</span><span class="cm">{cm(cmW)}</span></span>
+				<span class="dim h"><span class="px">{2 * pxH} px</span><span class="cm">{cm(cmH)}</span></span>
 			</div>
 		</div>
 	</div>
@@ -209,11 +210,21 @@
 		-webkit-tap-highlight-color: transparent;
 		--lift: 0px;
 	}
+	@property --fold {
+		syntax: '<number>';
+		inherits: true;
+		initial-value: 0;
+	}
 	.figure {
 		--delay: 0s;
+		--fold: 0;
+		--angle: calc(var(--fold) * -180deg);
 		position: relative;
 		width: var(--w);
 		height: calc(2 * var(--h));
+	}
+	.figure.folded {
+		--fold: 1;
 	}
 	.figure.after-flip {
 		--delay: 1s;
@@ -221,9 +232,7 @@
 	.file {
 		position: absolute;
 		inset: 0;
-	}
-	.folded .file {
-		transform: translateY(calc(var(--h) / 2));
+		transform: translateY(calc(var(--h) / 2 * var(--fold)));
 	}
 	.file img {
 		display: block;
@@ -235,11 +244,8 @@
 	.file .back-half {
 		object-position: bottom;
 		transform-origin: top;
-		transform: perspective(1000px) rotateX(0deg);
+		transform: perspective(1000px) rotateX(var(--angle));
 		backface-visibility: hidden;
-	}
-	.folded .back-half {
-		transform: perspective(1000px) rotateX(-180deg);
 	}
 	.card {
 		position: absolute;
@@ -251,19 +257,20 @@
 	.card :global(label.postcard) {
 		width: 100%;
 	}
+	/* Hugs the folding half's projected lower edge: h·cos θ, foreshortened by the 1000px perspective */
 	.measure {
 		position: absolute;
 		left: 0;
 		width: var(--w);
-		top: 0;
-		height: calc(2 * var(--h));
+		top: calc(var(--h) / 2 * var(--fold));
+		height: calc(
+			var(--h) *
+				(1 + max(0, cos(var(--angle))) / (1 - var(--hn) * sin(var(--angle)) / 1000))
+		);
 		pointer-events: none;
 	}
-	.folded .measure {
-		top: calc(var(--h) / 2);
-		height: var(--h);
-	}
 	.dim {
+		display: grid;
 		position: absolute;
 		font-size: 11px;
 		color: var(--secondary);
@@ -286,6 +293,16 @@
 		text-align: center;
 		padding-left: 3px;
 	}
+	.dim > * {
+		grid-area: 1 / 1;
+	}
+	.cm,
+	.folded .px {
+		visibility: hidden;
+	}
+	.folded .cm {
+		visibility: visible;
+	}
 	svg {
 		position: absolute;
 		inset: 0;
@@ -306,23 +323,19 @@
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
+		.figure {
+			transition: --fold 1s ease-in-out var(--delay);
+		}
 		.file {
-			transition:
-				transform 1s ease-in-out var(--delay),
-				visibility 0s var(--delay);
+			transition: visibility 0s var(--delay);
 		}
 		.folded .file {
-			transition:
-				transform 1s ease-in-out,
-				visibility 0s 1s;
+			transition: visibility 0s 1s;
 		}
-		.back-half {
-			transition: transform 1s ease-in-out var(--delay);
-		}
-		.measure {
-			transition:
-				top 1s ease-in-out var(--delay),
-				height 1s ease-in-out var(--delay);
+		/* Units change when the folding half turns edge-on */
+		.px,
+		.cm {
+			transition: visibility 0s calc(var(--delay) + 0.5s);
 		}
 		.card {
 			transition: visibility 0s var(--delay);
