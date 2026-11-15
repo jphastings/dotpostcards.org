@@ -6,7 +6,7 @@
 		motion = 'tap',
 		delay,
 		flipped = $bindable(false)
-	}: { card: Card; motion?: 'tap' | 'spin'; delay?: string; flipped?: boolean } = $props();
+	}: { card: Card; motion?: 'tap' | 'sequence'; delay?: string; flipped?: boolean } = $props();
 
 	const uid = $props.id();
 	const id = `postcard-${uid}`;
@@ -14,7 +14,7 @@
 	const style = $derived.by(() => {
 		const { pxW, pxH } = card.physical.frontSize;
 		const base = `--postcard: url('${card.src}'); --aspect-ratio: ${pxW} / ${pxH}`;
-		return motion === 'spin' && delay ? `${base}; animation-delay: ${delay}` : base;
+		return motion === 'sequence' && delay ? `${base}; animation-delay: ${delay}` : base;
 	});
 </script>
 
@@ -22,14 +22,14 @@
 	type="checkbox"
 	{id}
 	class="visually-hidden"
-	class:spin={motion === 'spin'}
+	class:sequence={motion === 'sequence'}
 	aria-label="Flip the {place} postcard"
 	bind:checked={flipped}
 />
 <label
 	for={id}
 	class="postcard flip-{card.flip} {orientation(card)}"
-	class:spin={motion === 'spin'}
+	class:sequence={motion === 'sequence'}
 	role="img"
 	aria-label={card.front.description ?? place}
 	{style}
@@ -55,21 +55,31 @@
 	}
 
 	@media (prefers-reduced-motion: no-preference) {
-		/* Spinning cards can't be flipped, so their checkbox leaves the tab order until motion is reduced */
-		input.spin {
+		/* Looping cards can't be flipped, so their checkbox leaves the tab order until motion is reduced */
+		input.sequence {
 			visibility: hidden;
 		}
-		:global(.postcard.spin) {
-			animation: postcard-spin 3s linear infinite;
+		:global(.postcard.sequence) {
+			animation: postcard-sequence 7s ease-in-out infinite;
 			transition: none;
 		}
 	}
 
-	@keyframes -global-postcard-spin {
-		from {
+	/* 7s loop: flip over in the first 1s, hold, flip back round from 3.5s to 4.5s, hold */
+	@keyframes -global-postcard-sequence {
+		0% {
 			--flip: 0deg;
 		}
-		to {
+		14.286% {
+			--flip: 180deg;
+		}
+		50% {
+			--flip: 180deg;
+		}
+		64.286% {
+			--flip: 360deg;
+		}
+		100% {
 			--flip: 360deg;
 		}
 	}

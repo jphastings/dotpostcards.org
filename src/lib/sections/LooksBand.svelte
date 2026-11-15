@@ -8,11 +8,12 @@
 
 <section>
 	<div class="panel">
-		<h2>Beautiful from every side.</h2>
+		<h2>Flip or flop</h2>
+		<p class="lede">Store which way the postcard flips, for unnecessary accuracy.</p>
 		<div class="band">
 			{#each cards as card, i (card.name)}
 				<figure>
-					<Postcard {card} motion="spin" delay="{-((i * 3) / cards.length)}s" />
+					<Postcard {card} motion="sequence" delay="{i * 250}ms" />
 					<figcaption>{card.flip} flip</figcaption>
 				</figure>
 			{/each}

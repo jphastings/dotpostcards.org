@@ -1,4 +1,29 @@
 {
+  "around-we-go": {
+    "location": {},
+    "flip": "calendar",
+    "sender": {},
+    "recipient": {},
+    "front": {
+      "description": "Black-and-white illustrated lettering on blue spelling \"Around We Go!\", with letters made from legs, hands, a football, basketball and bicycle wheel.",
+      "transcription": {}
+    },
+    "back": {
+      "transcription": {}
+    },
+    "context": {
+      "author": {},
+      "description": ""
+    },
+    "physical": {
+      "frontSize": {
+        "cmW": "356/25",
+        "cmH": "989/100",
+        "pxW": 1536,
+        "pxH": 1066
+      }
+    }
+  },
   "assisi": {
     "locale": "en-GB",
     "location": {
@@ -177,31 +202,6 @@
       }
     }
   },
-  "dualism": {
-    "location": {},
-    "flip": "left-hand",
-    "sender": {},
-    "recipient": {},
-    "front": {
-      "description": "Minimalist graphic of overlapping green and red circles with a purple overlap, illustrating the philosophical concept of dualism.",
-      "transcription": {}
-    },
-    "back": {
-      "transcription": {}
-    },
-    "context": {
-      "author": {},
-      "description": ""
-    },
-    "physical": {
-      "frontSize": {
-        "cmW": "1249/100",
-        "cmH": "426/25",
-        "pxW": 1876,
-        "pxH": 2560
-      }
-    }
-  },
   "france": {
     "locale": "en-GB",
     "location": {
@@ -257,31 +257,6 @@
         "cmH": "1003/64",
         "pxW": 1048,
         "pxH": 1536
-      }
-    }
-  },
-  "hold-on": {
-    "location": {},
-    "flip": "calendar",
-    "sender": {},
-    "recipient": {},
-    "front": {
-      "description": "Bold white lettering spelling \"Hold On\" on a red background, with cartoon hands gripping and linking the letters.",
-      "transcription": {}
-    },
-    "back": {
-      "transcription": {}
-    },
-    "context": {
-      "author": {},
-      "description": ""
-    },
-    "physical": {
-      "frontSize": {
-        "cmW": "57/4",
-        "cmH": "997/100",
-        "pxW": 2560,
-        "pxH": 1791
       }
     }
   },
