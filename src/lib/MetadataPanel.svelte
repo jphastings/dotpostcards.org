@@ -207,7 +207,7 @@
 		display: grid;
 		grid-template-columns: 380px 1fr;
 		gap: 40px;
-		align-items: center;
+		align-items: start;
 		text-align: left;
 	}
 	.stage {
@@ -452,6 +452,11 @@
 	@media (max-width: 733px) {
 		.panel {
 			grid-template-columns: 1fr;
+		}
+		.tabs {
+			display: flex;
+			width: fit-content;
+			margin-inline: auto;
 		}
 		.info {
 			justify-self: center;
