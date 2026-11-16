@@ -123,6 +123,43 @@ for (const [first, then] of [
     expect(landed.measure).toBeCloseTo(landed.card, 0);
   });
 
+// Finishes the section's animations, then measures the stage, the card, and the tabs' offset in it
+const settledLayout = (page: Page) =>
+  section(page).evaluate((el) => {
+    for (const a of el.getAnimations({ subtree: true })) a.finish();
+    const box = (selector: string) => el.querySelector(selector)!.getBoundingClientRect();
+    return {
+      stage: box(".stage").height,
+      card: box("label.postcard").height,
+      tabs: box("[role=tablist]").top - box(".stage").top,
+    };
+  });
+const gutter = 28;
+
+test("on a wide screen, the stage keeps its height across tabs", async ({ page }) => {
+  const heights = [];
+  for (const name of ["Postcard", "Front", "Back", "Postcard"]) {
+    await tab(page, name).click();
+    heights.push((await settledLayout(page)).stage);
+  }
+  expect(new Set(heights).size).toBe(1);
+});
+
+test.describe("on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("the stage shrinks to the folded card, bringing the tabs up under it", async ({ page }) => {
+    const file = await settledLayout(page);
+    expect(file.stage).toBeCloseTo(2 * file.card + gutter, 0);
+    for (const name of ["Front", "Back"]) {
+      await tab(page, name).click();
+      const folded = await settledLayout(page);
+      expect(folded.stage).toBeCloseTo(folded.card + gutter, 0);
+      expect(file.tabs - folded.tabs).toBeCloseTo(folded.card, 0);
+    }
+  });
+});
+
 test.describe("reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
 

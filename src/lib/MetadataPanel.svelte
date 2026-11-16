@@ -254,6 +254,8 @@
 	.figure {
 		--fold: 0;
 		--angle: calc(var(--fold) * -180deg);
+		/* The folding half's projected height, in card heights: cos θ, foreshortened by the perspective */
+		--projected: calc(max(0, cos(var(--angle))) / (1 - var(--hn) * sin(var(--angle)) / 1000));
 		position: relative;
 		width: var(--w);
 		height: calc(2 * var(--h));
@@ -299,9 +301,8 @@
 	.card :global(label.postcard) {
 		width: 100%;
 	}
-	/* Hugs the folding half's projected outer edge: h·cos θ, foreshortened by the 1000px perspective */
+	/* Hugs the folding half's projected outer edge */
 	.measure {
-		--projected: calc(max(0, cos(var(--angle))) / (1 - var(--hn) * sin(var(--angle)) / 1000));
 		position: absolute;
 		left: 0;
 		width: var(--w);
@@ -475,6 +476,21 @@
 	@media (max-width: 733px) {
 		.panel {
 			grid-template-columns: 1fr;
+		}
+		/* The stage hugs what's left in view, so the tabs sit just under a folded card */
+		.figure {
+			height: calc(var(--h) * (1 + var(--projected)));
+		}
+		.file {
+			transform: none;
+		}
+		.to-back .file {
+			transform: translateY(calc(var(--h) * (var(--projected) - 1)));
+		}
+		.card,
+		.measure,
+		.to-back .measure {
+			top: 0;
 		}
 		.tabs {
 			display: flex;
