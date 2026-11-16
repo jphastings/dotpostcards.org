@@ -32,6 +32,48 @@ test("the band flips one card after another, then holds still", async ({ page })
   expect(await bandFlipsAt(page, 10000)).toEqual([0, 0, 0]);
 });
 
+for (const width of [390, 1440]) {
+  test(`at ${width}px the band's cards share one row`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    const middles = await bandCards(page).evaluateAll((cards) =>
+      cards.map((el) => {
+        const { top, height } = el.getBoundingClientRect();
+        return top + height / 2;
+      }),
+    );
+    expect(Math.max(...middles) - Math.min(...middles)).toBeLessThan(3);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      width,
+    );
+  });
+}
+
+test("each band card marks its flip axis across its bounding box", async ({ page }) => {
+  // CSS turns clockwise: -45deg runs bottom-left to top-right
+  const axes: Record<string, string> = {
+    "left-hand": "-45deg",
+    "right-hand": "45deg",
+    book: "90deg",
+  };
+  await bandFlipsAt(page, 10000);
+  for (const card of await bandCards(page).all()) {
+    const flip = (await card.getAttribute("class"))!.match(/flip-(\S+)/)![1];
+    const line = card.locator(".axis span");
+    expect(await line.evaluate((el) => getComputedStyle(el).rotate)).toBe(axes[flip]);
+    const [l, c] = [(await line.boundingBox())!, (await card.boundingBox())!];
+    expect(l.y).toBeCloseTo(c.y, -1);
+    expect(l.height).toBeCloseTo(c.height, -1);
+    expect(l.x + l.width / 2).toBeCloseTo(c.x + c.width / 2, 0);
+    if (flip !== "book") expect(l.width).toBeCloseTo(c.width, -1);
+  }
+});
+
+test("band cards show the default cursor, since a click doesn't flip them", async ({ page }) => {
+  expect(
+    await bandCards(page).evaluateAll((cards) => cards.map((el) => getComputedStyle(el).cursor)),
+  ).toEqual(["default", "default", "default"]);
+});
+
 test("no two band cards are mid-turn at once", async ({ page }) => {
   for (let ms = 0; ms < 11000; ms += 125) {
     const turning = (await bandFlipsAt(page, ms)).filter((deg) => deg !== 0 && deg !== 180);
@@ -89,6 +131,12 @@ test.describe("reduced motion", () => {
     );
     await band.first().click();
     await expect.poll(() => flip(band.first())).toBe("180deg");
+  });
+
+  test("band cards show a pointer, since a click flips them", async ({ page }) => {
+    expect(
+      await bandCards(page).evaluateAll((cards) => cards.map((el) => getComputedStyle(el).cursor)),
+    ).toEqual(["pointer", "pointer", "pointer"]);
   });
 
   test("a band card's checkbox takes keyboard focus", async ({ page }) => {

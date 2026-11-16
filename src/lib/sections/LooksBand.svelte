@@ -31,23 +31,23 @@
 		overflow: clip;
 	}
 	.band {
+		--card: 170px;
 		display: flex;
-		flex-wrap: wrap;
 		justify-content: center;
-		gap: 40px clamp(48px, 7vw, 110px);
+		gap: clamp(48px, 7vw, 110px);
 		margin-top: 56px;
 	}
 	figure {
 		position: relative;
 		display: grid;
-		grid-template-rows: 250px auto;
+		grid-template-rows: calc(var(--card) * 1.06) auto;
 		justify-items: center;
 		align-items: center;
-		gap: 20px;
+		gap: 8px;
 		margin: 0;
 	}
 	figure :global(label.postcard) {
-		width: 170px;
+		width: var(--card);
 	}
 	figcaption {
 		font-size: 14px;
@@ -57,12 +57,9 @@
 		.panel {
 			padding: 56px 16px;
 		}
-		figure {
-			grid-template-rows: 170px auto;
-			gap: 12px;
-		}
-		figure :global(label.postcard) {
-			width: 130px;
+		.band {
+			--card: min(130px, 26vw);
+			gap: 4vw;
 		}
 	}
 </style>

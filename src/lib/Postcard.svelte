@@ -56,6 +56,9 @@ ${selector} .shadow::before { mask: ${url} top/100%; }
 >
 	<img src={card.src} alt="" loading="lazy" />
 	<div class="shadow"></div>
+	{#if motion === 'sequence'}
+		<span class="axis" aria-hidden="true"><span></span></span>
+	{/if}
 </label>
 
 <style>
@@ -74,14 +77,50 @@ ${selector} .shadow::before { mask: ${url} top/100%; }
 		outline-offset: 4px;
 	}
 
+	/* Face-sized, so --rise's percentages lift it exactly as far as the card. It skips --turn: the
+	   line lies on that axis anyway, and turning would show it edge-on mid-flip. */
+	.axis {
+		position: absolute;
+		width: 100%;
+		aspect-ratio: var(--aspect-ratio);
+		z-index: 3;
+		pointer-events: none;
+		transform: var(--p) translateZ(var(--lift)) var(--rise);
+	}
+	.portrait .axis {
+		width: auto;
+		height: 100%;
+	}
+	.axis span {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: var(--card-w);
+		border-top: 1px dashed var(--tertiary);
+		translate: -50% -50%;
+	}
+	.flip-book .axis span {
+		width: var(--card-h);
+		rotate: 90deg;
+	}
+	:is(.flip-left-hand, .flip-right-hand) .axis span {
+		width: calc(100cqw * sqrt(2));
+		rotate: -45deg;
+	}
+	.flip-right-hand .axis span {
+		rotate: 45deg;
+	}
+
 	@media (prefers-reduced-motion: no-preference) {
 		/* Looping cards can't be flipped, so their checkbox leaves the tab order until motion is reduced */
 		input.sequence {
 			visibility: hidden;
 		}
-		:global(.postcard.sequence) {
+		/* label.: outranks the library's pointer, since clicking a looping card does nothing */
+		:global(label.postcard.sequence) {
 			animation: postcard-sequence 11s ease-in-out infinite;
 			transition: none;
+			cursor: default;
 		}
 	}
 
