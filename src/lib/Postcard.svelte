@@ -60,23 +60,25 @@
 			visibility: hidden;
 		}
 		:global(.postcard.sequence) {
-			animation: postcard-sequence 7s ease-in-out infinite;
+			animation: postcard-sequence 11s ease-in-out infinite;
 			transition: none;
 		}
 	}
 
-	/* 7s loop: flip over in the first 1s, hold, flip back round from 3.5s to 4.5s, hold */
+	/* 11s loop: flip over in the first 1s, hold, flip back round from 5.5s to 6.5s, hold. The band
+	   staggers its cards by 1.25s so no two turn at once: WebKit paints a card blank while another
+	   card with a different image is mid-turn. */
 	@keyframes -global-postcard-sequence {
 		0% {
 			--flip: 0deg;
 		}
-		14.286% {
+		9.091% {
 			--flip: 180deg;
 		}
 		50% {
 			--flip: 180deg;
 		}
-		64.286% {
+		59.091% {
 			--flip: 360deg;
 		}
 		100% {

@@ -4,16 +4,41 @@
 	import { showcase } from '$lib/showcase';
 
 	const cards = showcase.band.map(getCard);
+
+	// WebKit paints a card blank while another card with a different image changes how it's
+	// turned, so the band holds still while any other card on the page flips or folds
+	const turns = ['--flip', '--fold'];
+	let paused = $state(false);
+
+	// Rechecked as each turn settles, finished or cancelled, so the band can't be left paused
+	function checkTurns() {
+		const running = document
+			.getAnimations()
+			.filter(
+				(a) =>
+					a instanceof CSSTransition &&
+					turns.includes(a.transitionProperty) &&
+					a.playState === 'running'
+			);
+		paused = running.length > 0;
+		for (const turn of running) turn.finished.then(checkTurns, checkTurns);
+	}
+
+	function onTransitionRun(event: TransitionEvent) {
+		if (turns.includes(event.propertyName)) checkTurns();
+	}
 </script>
+
+<svelte:document ontransitionrun={onTransitionRun} />
 
 <section>
 	<div class="panel">
 		<h2>Flip or flop</h2>
 		<p class="lede">Store which way the postcard flips, for unnecessary accuracy.</p>
-		<div class="band">
+		<div class="band" class:paused>
 			{#each cards as card, i (card.name)}
 				<figure>
-					<Postcard {card} motion="sequence" delay="{i * 250}ms" />
+					<Postcard {card} motion="sequence" delay="{i * 1250}ms" />
 					<figcaption>{card.flip} flip</figcaption>
 				</figure>
 			{/each}
@@ -48,6 +73,9 @@
 	}
 	figure :global(label.postcard) {
 		width: 170px;
+	}
+	.paused :global(label.postcard.sequence) {
+		animation-play-state: paused;
 	}
 	figcaption {
 		font-size: 14px;

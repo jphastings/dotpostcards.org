@@ -23,10 +23,33 @@ test("a click flips a tap card", async ({ page }) => {
 });
 
 test("the band flips one card after another, then holds still", async ({ page }) => {
-  const [france, assisi, china] = await bandFlipsAt(page, 600);
-  expect(france).toBeGreaterThan(assisi);
-  expect(assisi).toBeGreaterThan(china);
-  expect(await bandFlipsAt(page, 2500)).toEqual([180, 180, 180]);
+  const [france, assisi, china] = await bandFlipsAt(page, 500);
+  expect(france).toBeGreaterThan(0);
+  expect([assisi, china]).toEqual([0, 0]);
+  expect((await bandFlipsAt(page, 1750))[1]).toBeGreaterThan(0);
+  expect((await bandFlipsAt(page, 3000))[2]).toBeGreaterThan(0);
+  expect(await bandFlipsAt(page, 4500)).toEqual([180, 180, 180]);
+  expect(await bandFlipsAt(page, 10000)).toEqual([360, 360, 360]);
+});
+
+test("no two band cards are mid-turn at once", async ({ page }) => {
+  for (let ms = 0; ms < 11000; ms += 125) {
+    const turning = (await bandFlipsAt(page, ms)).filter((deg) => deg % 180 !== 0);
+    expect(turning.length, `at ${ms}ms`).toBeLessThanOrEqual(1);
+  }
+});
+
+test("the band holds still while another card flips", async ({ page }) => {
+  const bandPlayStates = () =>
+    bandCards(page).evaluateAll((cards) =>
+      cards.flatMap((el) => el.getAnimations().map((a) => a.playState)),
+    );
+  await tapCard(page).click();
+  await expect.poll(() => flip(tapCard(page))).not.toBe("0deg");
+  expect(await flip(tapCard(page))).not.toBe("180deg");
+  expect(await bandPlayStates()).toEqual(["paused", "paused", "paused"]);
+  await expect.poll(() => flip(tapCard(page))).toBe("180deg");
+  await expect.poll(bandPlayStates).toEqual(["running", "running", "running"]);
 });
 
 test("keyboard focus lands on a card's checkbox and outlines that card", async ({ page }) => {
