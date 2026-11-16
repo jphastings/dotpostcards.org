@@ -65,6 +65,11 @@ main {
   overflow-x: clip;
 }
 
+/* The library's own rule, label:has(.postcard), misses its template, where the label is the .postcard */
+label.postcard {
+  -webkit-tap-highlight-color: transparent;
+}
+
 main > section {
   padding: 100px 22px;
   text-align: center;
