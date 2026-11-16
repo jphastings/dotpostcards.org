@@ -16,7 +16,26 @@
 		const base = `--postcard: url('${card.src}'); --aspect-ratio: ${pxW} / ${pxH}`;
 		return motion === 'sequence' && delay ? `${base}; animation-delay: ${delay}` : base;
 	});
+
+	// Temporary, until the vendored library stops routing images through shared var(--postcard)
+	// declarations. WebKit caches one var() result per declaration, so cards with different
+	// --postcard values restyling every frame (--flip) keep evicting it, and Safari re-fetches and
+	// blanks their images. Each card's own rules with literal URLs avoid that; mirrors the library's
+	// declarations. Details: .superpowers/debug/LIBRARY-ISSUE.md
+	const imageRules = $derived.by(() => {
+		const selector = `label.postcard[data-card="${card.name}"]`;
+		const url = `url('${card.src}')`;
+		const face = (shade: string) =>
+			`linear-gradient(var(${shade}), rgb(var(--v1), var(--v1), var(--v1)), rgb(var(--v2), var(--v2), var(--v2))), ${url}`;
+		return `<style>
+${selector}:not(.flip-none)::after { mask: ${url} top/100%; background-image: ${face('--shade')}; }
+${selector}:not(.flip-none)::before { mask: ${url} bottom/100%; background-image: ${face('--shade-back')}; }
+${selector} .shadow::before { mask: ${url} top/100%; }
+</style>`;
+	});
 </script>
+
+<svelte:head>{@html imageRules}</svelte:head>
 
 <input
 	type="checkbox"
@@ -27,6 +46,7 @@
 	bind:checked={flipped}
 />
 <label
+	data-card={card.name}
 	for={id}
 	class="postcard flip-{card.flip} {orientation(card)}"
 	class:sequence={motion === 'sequence'}
@@ -66,8 +86,7 @@
 	}
 
 	/* 11s loop: flip over in the first 1s, hold, flip back round from 5.5s to 6.5s, hold. The band
-	   staggers its cards by 1.25s so no two turn at once: WebKit paints a card blank while another
-	   card with a different image is mid-turn. */
+	   staggers its cards by 1.25s so they turn one after another. */
 	@keyframes -global-postcard-sequence {
 		0% {
 			--flip: 0deg;

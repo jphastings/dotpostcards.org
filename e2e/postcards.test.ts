@@ -39,17 +39,28 @@ test("no two band cards are mid-turn at once", async ({ page }) => {
   }
 });
 
-test("the band holds still while another card flips", async ({ page }) => {
-  const bandPlayStates = () =>
-    bandCards(page).evaluateAll((cards) =>
-      cards.flatMap((el) => el.getAnimations().map((a) => a.playState)),
-    );
-  await tapCard(page).click();
-  await expect.poll(() => flip(tapCard(page))).not.toBe("0deg");
-  expect(await flip(tapCard(page))).not.toBe("180deg");
-  expect(await bandPlayStates()).toEqual(["paused", "paused", "paused"]);
-  await expect.poll(() => flip(tapCard(page))).toBe("180deg");
-  await expect.poll(bandPlayStates).toEqual(["running", "running", "running"]);
+// Stopgap for WebKit re-fetching images through the library's shared var(--postcard) (see Postcard.svelte)
+test("every card draws its faces and shadow from its own literal url()", async ({ page }) => {
+  const missing = await page.locator("label.postcard").evaluateAll((labels) => {
+    const rules = [...document.styleSheets]
+      .flatMap((sheet) => [...sheet.cssRules])
+      .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule);
+    return labels.flatMap((label) => {
+      const url = label.getAttribute("style")!.match(/url\('([^']+)'\)/)![1];
+      const literal = (part: string, faces: boolean) =>
+        rules.some(
+          ({ selectorText, style }) =>
+            selectorText.endsWith(part) &&
+            label.matches(selectorText.slice(0, -part.length)) &&
+            style.maskImage.includes(url) &&
+            (!faces || style.backgroundImage.includes(url)),
+        );
+      const parts: [string, boolean][] = [[" .shadow::before", false]];
+      if (!label.classList.contains("flip-none")) parts.push(["::after", true], ["::before", true]);
+      return parts.filter(([part, faces]) => !literal(part, faces)).map(([part]) => url + part);
+    });
+  });
+  expect(missing).toEqual([]);
 });
 
 test("keyboard focus lands on a card's checkbox and outlines that card", async ({ page }) => {
