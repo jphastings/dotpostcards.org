@@ -85,7 +85,8 @@ ${selector} .shadow::before { mask: ${url} top/100%; }
 		}
 	}
 
-	/* 11s loop: flip over in the first 1s, hold, flip back round from 5.5s to 6.5s, hold. The band
+	/* 11s loop: flip over in the first 1s, hold, flip back the way it came from 5.5s to 6.5s, hold.
+	   --flip stays in [0, 180] because the library's lift and shadow scale by sin(--flip), which goes negative past 180. The band
 	   staggers its cards by 1.25s so they turn one after another. */
 	@keyframes -global-postcard-sequence {
 		0% {
@@ -98,10 +99,10 @@ ${selector} .shadow::before { mask: ${url} top/100%; }
 			--flip: 180deg;
 		}
 		59.091% {
-			--flip: 360deg;
+			--flip: 0deg;
 		}
 		100% {
-			--flip: 360deg;
+			--flip: 0deg;
 		}
 	}
 </style>

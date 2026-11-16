@@ -29,12 +29,12 @@ test("the band flips one card after another, then holds still", async ({ page })
   expect((await bandFlipsAt(page, 1750))[1]).toBeGreaterThan(0);
   expect((await bandFlipsAt(page, 3000))[2]).toBeGreaterThan(0);
   expect(await bandFlipsAt(page, 4500)).toEqual([180, 180, 180]);
-  expect(await bandFlipsAt(page, 10000)).toEqual([360, 360, 360]);
+  expect(await bandFlipsAt(page, 10000)).toEqual([0, 0, 0]);
 });
 
 test("no two band cards are mid-turn at once", async ({ page }) => {
   for (let ms = 0; ms < 11000; ms += 125) {
-    const turning = (await bandFlipsAt(page, ms)).filter((deg) => deg % 180 !== 0);
+    const turning = (await bandFlipsAt(page, ms)).filter((deg) => deg !== 0 && deg !== 180);
     expect(turning.length, `at ${ms}ms`).toBeLessThanOrEqual(1);
   }
 });

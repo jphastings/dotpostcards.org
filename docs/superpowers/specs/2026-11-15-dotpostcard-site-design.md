@@ -130,7 +130,7 @@ JP chose A.
 
 **Hero.** Headline "The open digital postcard format"; sub-copy "Lovingly made by a geek with postcard fixation and the limited space of a London flat."
 
-**Flip or flop** (was "They look great"). Heading "Flip or flop", text beneath: "Store which way the postcard flips, for unnecessary accuracy." Only three cards: left-hand (`france`), book (`assisi`), right-hand (`china`); no calendar or ragged card. Continuous spinning was motion-sickness inducing, so instead a calm, sequential loop: left-hand flips (1s, the library's ease-in-out), 250ms later book flips, 250ms later right-hand flips; 2s pause; then each turns over again in the same order and direction, completing 360°; 2s pause; repeat (7s loop). Reduced motion: no loop; cards tap to flip.
+**Flip or flop** (was "They look great"). Heading "Flip or flop", text beneath: "Store which way the postcard flips, for unnecessary accuracy." Only three cards: left-hand (`france`), book (`assisi`), right-hand (`china`); no calendar or ragged card. Continuous spinning was motion-sickness inducing, so instead a calm, sequential loop: left-hand flips (1s, the library's ease-in-out), 250ms later book flips, 250ms later right-hand flips; 2s pause; then each flips back the way it came, like tapped cards, in the same order; 2s pause; repeat (7s loop). Reduced motion: no loop; cards tap to flip.
 
 **Everything stays together.** Text beneath: "Just an image with standard XMP metadata inside, so you never lose context." Uses a calendar-flip card (`around-we-go`, from JP), because folding the file's lower half up behind the front *is* a calendar flip. Three tabs on the right drive a three-state sequence on the left (tapping the card advances to the next tab, cycling):
 
