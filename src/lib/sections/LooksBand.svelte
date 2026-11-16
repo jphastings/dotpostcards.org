@@ -40,7 +40,7 @@
 	figure {
 		position: relative;
 		display: grid;
-		grid-template-rows: calc(var(--card) * 1.06) auto;
+		grid-template-rows: calc(var(--card) * 1.1) auto;
 		justify-items: center;
 		align-items: center;
 		gap: 8px;

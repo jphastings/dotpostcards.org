@@ -78,12 +78,13 @@ ${selector} .shadow::before { mask: ${url} top/100%; }
 	}
 
 	/* Face-sized, so --rise's percentages lift it exactly as far as the card. It skips --turn: the
-	   line lies on that axis anyway, and turning would show it edge-on mid-flip. */
+	   line lies on that axis anyway, and turning would show it edge-on mid-flip. Between the shadow
+	   (0) and the faces (2), so only its ends show past the card. */
 	.axis {
 		position: absolute;
 		width: 100%;
 		aspect-ratio: var(--aspect-ratio);
-		z-index: 3;
+		z-index: 1;
 		pointer-events: none;
 		transform: var(--p) translateZ(var(--lift)) var(--rise);
 	}
@@ -95,12 +96,11 @@ ${selector} .shadow::before { mask: ${url} top/100%; }
 		position: absolute;
 		top: 50%;
 		left: 50%;
-		width: var(--card-w);
+		width: max(var(--card-w), var(--card-h));
 		border-top: 1px dashed var(--tertiary);
 		translate: -50% -50%;
 	}
 	.flip-book .axis span {
-		width: var(--card-h);
 		rotate: 90deg;
 	}
 	:is(.flip-left-hand, .flip-right-hand) .axis span {

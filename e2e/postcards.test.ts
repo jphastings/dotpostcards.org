@@ -48,7 +48,7 @@ for (const width of [390, 1440]) {
   });
 }
 
-test("each band card marks its flip axis across its bounding box", async ({ page }) => {
+test("each band card marks its flip axis across the square around it", async ({ page }) => {
   // CSS turns clockwise: -45deg runs bottom-left to top-right
   const axes: Record<string, string> = {
     "left-hand": "-45deg",
@@ -61,10 +61,26 @@ test("each band card marks its flip axis across its bounding box", async ({ page
     const line = card.locator(".axis span");
     expect(await line.evaluate((el) => getComputedStyle(el).rotate)).toBe(axes[flip]);
     const [l, c] = [(await line.boundingBox())!, (await card.boundingBox())!];
-    expect(l.y).toBeCloseTo(c.y, -1);
-    expect(l.height).toBeCloseTo(c.height, -1);
+    const side = Math.max(c.width, c.height);
+    expect(l.height).toBeCloseTo(side, -1);
+    expect(l.y + l.height / 2).toBeCloseTo(c.y + c.height / 2, 0);
     expect(l.x + l.width / 2).toBeCloseTo(c.x + c.width / 2, 0);
-    if (flip !== "book") expect(l.width).toBeCloseTo(c.width, -1);
+    if (flip !== "book") expect(l.width).toBeCloseTo(side, -1);
+  }
+});
+
+test("the axis line hides behind its card", async ({ page }) => {
+  await bandCards(page).first().scrollIntoViewIfNeeded();
+  for (const ms of [10000, 250, 1500, 2750]) {
+    await bandFlipsAt(page, ms);
+    for (const card of await bandCards(page).all()) {
+      const c = (await card.boundingBox())!;
+      const middle = { x: c.x + c.width / 2 - 8, y: c.y + c.height / 2 - 8, width: 16, height: 16 };
+      const shown = await page.screenshot({ clip: middle });
+      await card.locator(".axis").evaluate((el) => (el.style.visibility = "hidden"));
+      expect(await page.screenshot({ clip: middle }), `at ${ms}ms`).toEqual(shown);
+      await card.locator(".axis").evaluate((el) => (el.style.visibility = ""));
+    }
   }
 });
 
