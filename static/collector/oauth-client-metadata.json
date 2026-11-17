@@ -1,5 +1,5 @@
 {
-  "client_id": "https://dotpostcard.org/oauth-client-metadata.json",
+  "client_id": "https://dotpostcard.org/collector/oauth-client-metadata.json",
   "client_name": "Postcard Collector",
   "client_uri": "https://dotpostcard.org",
   "application_type": "native",
