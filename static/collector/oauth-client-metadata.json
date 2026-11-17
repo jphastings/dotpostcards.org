@@ -1,0 +1,12 @@
+{
+  "client_id": "https://dotpostcard.org/collector/oauth-client-metadata.json",
+  "client_name": "Postcard Collector",
+  "client_uri": "https://dotpostcard.org",
+  "application_type": "native",
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"],
+  "redirect_uris": ["org.dotpostcard:/oauth/callback"],
+  "scope": "atproto repo:org.dotpostcard.follow",
+  "token_endpoint_auth_method": "none",
+  "dpop_bound_access_tokens": true
+}
